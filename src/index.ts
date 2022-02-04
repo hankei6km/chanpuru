@@ -1,2 +1,1 @@
-import countChars from './count.js'
-export { countChars }
+export { Make } from './lib/promise-chan.js'
