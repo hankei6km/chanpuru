@@ -1,0 +1,43 @@
+{
+  "name": "@hankei6km/promise-chan",
+  "version": "0.1.0",
+  "description": "some promise to async generator",
+  "author": "hankei6km <hankei6km@gmail.com> (https://github.com/hankei6km)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/hankei6km/gas-blank-rows.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hankei6km/gas-blank-rows/issues"
+  },
+  "keywords": [
+    "promise"
+  ],
+  "main": "dist/index.js",
+  "exports": "./dist/index.js",
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "bin": {
+    "count": "dist/main.js"
+  },
+  "scripts": {
+    "build": "npm run clean && tsc && rimraf dist/test && mv dist/src/* dist/ && rimraf dist/src",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "clean": "rimraf \"dist/*\"",
+    "upgrade-interactive": "npm-check --update"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/jest": "^27.4.0",
+    "@types/node": "^17.0.14",
+    "jest": "^27.4.7",
+    "rimraf": "^3.0.2",
+    "ts-jest": "^27.1.3",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.5.5"
+  }
+}
