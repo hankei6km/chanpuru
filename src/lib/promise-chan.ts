@@ -61,11 +61,14 @@ export class Make<T> {
     return this.writeFunc(p)
   }
   private async reciver(): Promise<{ value: T | undefined; done: boolean }> {
-    while (this.buf.length === 0 && !this.closed) {
-      // バッファーが 0 件だった場合、write されるまで待つ.
+    // バッファーが埋まっていない場合は、write されるまで待つ.
+    // close されていれば素通し.
+    while (this.buf.length < this.bufSize && !this.closed) {
       await this.bufPromise
       this.bufReset()
     }
+    // バッファーを消費していたら終了.
+    // 通常は消費しない、close されていれば何度か呼びだされるうちに消費される.
     if (this.buf.length > 0) {
       const pa = this.buf.map(
         (b, i) =>

@@ -207,7 +207,7 @@ describe('Make()', () => {
   it('should returns immediately if the buffer is not full(short)', async () => {
     const s = ['0', '1']
     const pr = genPromiseResolve(s)
-    const c = new Make<string>(2)
+    const c = new Make<string>(1)
     let done = [false, false]
     ;(async () => {
       await c.write(pr[0][0])
