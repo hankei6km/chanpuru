@@ -1,7 +1,7 @@
 {
   "name": "@hankei6km/promise-chan",
   "version": "0.1.0",
-  "description": "some promise to async generator",
+  "description": "Multiple promises to async generator",
   "author": "hankei6km <hankei6km@gmail.com> (https://github.com/hankei6km)",
   "license": "MIT",
   "repository": {
