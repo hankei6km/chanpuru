@@ -61,8 +61,8 @@ export class Make<T> {
     return this.writeFunc(p)
   }
   private async reciver(): Promise<{ value: T | undefined; done: boolean }> {
-    while (this.buf.length === 0 && !this.closed) {
-      // バッファーが 0 件だった場合、write されるまで待つ.
+    while (this.buf.length < this.bufSize && !this.closed) {
+      // バッファーが埋まっていない場合は、write されるまで待つ.
       await this.bufPromise
       this.bufReset()
     }
