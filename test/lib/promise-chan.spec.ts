@@ -207,7 +207,7 @@ describe('Make()', () => {
   it('should returns immediately if the buffer is not full(short)', async () => {
     const s = ['0', '1']
     const pr = genPromiseResolve(s)
-    const c = new Make<string>(1)
+    const c = new Make<string>(2)
     let done = [false, false]
     ;(async () => {
       await c.write(pr[0][0])
@@ -249,19 +249,19 @@ describe('Make()', () => {
     const i = c.reader()
     expect(cnt).toEqual(0)
     await i.next()
-    // 内部バッファーサイズ = 3+1、next でリリースされたので 1 回 write が成功.
+    // 内部バッファーサイズ = 3、next でリリースされたので 1 回 write が成功.
     // generator 側の処理を変更すると write 成功前に戻ってくるので値は変動する.
-    expect(cnt).toEqual(5)
+    expect(cnt).toEqual(4)
     await i.next()
     await i.next()
     await i.next()
     await i.next()
-    expect(cnt).toEqual(9)
+    expect(cnt).toEqual(8)
     await i.next()
     await i.next()
     await i.next()
     await i.next()
-    expect(cnt).toEqual(13)
+    expect(cnt).toEqual(12)
   })
 
   it('should catch rejected error', async () => {

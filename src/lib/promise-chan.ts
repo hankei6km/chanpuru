@@ -13,7 +13,7 @@ export class Make<T> {
   private closed: boolean = false
 
   constructor(bufSize: number = 0) {
-    this.bufSize = bufSize + 1 // バッファーサイズ 0 のときも内部的にはバッファーは必要.
+    this.bufSize = bufSize === 0 ? 1 : bufSize // バッファーサイズ 0 のときも内部的にはバッファーは必要.
     this.writeFunc = bufSize === 0 ? this._writeWithoutBuf : this._writeWithBuf
     this.buf = []
     this.bufReset()
