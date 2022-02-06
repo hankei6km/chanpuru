@@ -396,12 +396,14 @@ describe('Chan()', () => {
     ;(async () => {
       try {
         for (let i = 0; i < pr.length; i++) {
+          pr[i][0].catch((reason) => {
+            writerError = reason
+            throw reason
+          })
           await c.write(pr[i][0])
           cnt++
         }
-      } catch (e: any) {
-        writerError = e
-      }
+      } catch (_e: any) {}
       c.close()
     })()
     pr[0][1]()
