@@ -87,6 +87,7 @@ export class Chan<T> {
       this.valueReset()
       return { value: v, done: false }
     }
+    this.clean()
     return { value: undefined, done: true }
   }
   async *reader(): AsyncGenerator<T, void, void> {
@@ -101,6 +102,10 @@ export class Chan<T> {
     } catch (e) {
       throw e
     }
+  }
+  private clean() {
+    this.bufRelease()
+    this.valueRelease()
   }
   close() {
     this.closed = true

@@ -1,4 +1,20 @@
+import { jest } from '@jest/globals'
 import { Chan } from '../../src/lib/chan.js'
+
+// https://stackoverflow.com/questions/43265944/is-there-any-way-to-mock-private-functions-with-jest
+const mockBufReset = jest.spyOn(Chan.prototype as any, 'bufReset')
+const mockBufRelease = jest.spyOn(Chan.prototype as any, 'bufRelease')
+const mockValueReset = jest.spyOn(Chan.prototype as any, 'valueReset')
+const mockValueRelease = jest.spyOn(Chan.prototype as any, 'valueRelease')
+const mockValueReject = jest.spyOn(Chan.prototype as any, 'valueRelease')
+
+beforeEach(() => {
+  mockBufReset.mockClear()
+  mockBufRelease.mockClear()
+  mockValueReset.mockClear()
+  mockValueRelease.mockClear()
+  mockValueReject.mockClear()
+})
 
 describe('Chan()', () => {
   const genPromiseResolve = function (
@@ -27,11 +43,22 @@ describe('Chan()', () => {
     const pr = genPromiseResolve(s)
     const c = new Chan<string>()
     setTimeout(async () => {
-      c.write(pr[0][0])
+      ;(async () => await c.write(pr[0][0]))()
       pr[0][1]()
+      c.close()
     }, 100)
     const i = c.reader()
     expect((await i.next()).value).toEqual('0')
+    expect((await i.next()).done).toBeTruthy()
+
+    expect(mockBufReset).toBeCalled()
+    expect(
+      mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
+    ).toBeTruthy()
+    expect(mockValueReset).toBeCalled()
+    expect(
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
+    ).toBeTruthy()
   })
 
   it('should close when buffer is empty', async () => {
@@ -41,6 +68,15 @@ describe('Chan()', () => {
     }, 100)
     const i = c.reader()
     expect((await i.next()).done).toBeTruthy()
+
+    expect(mockBufReset).toBeCalled()
+    expect(
+      mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
+    ).toBeTruthy()
+    expect(mockValueReset).toBeCalled()
+    expect(
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
+    ).toBeTruthy()
   })
 
   it('should close when read items the number of just bufSize', async () => {
@@ -60,6 +96,15 @@ describe('Chan()', () => {
     expect((await i.next()).value).toEqual('0')
     expect((await i.next()).value).toEqual('1')
     expect((await i.next()).done).toBeTruthy()
+
+    expect(mockBufReset).toBeCalled()
+    expect(
+      mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
+    ).toBeTruthy()
+    expect(mockValueReset).toBeCalled()
+    expect(
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
+    ).toBeTruthy()
   })
 
   it('should read all items', async () => {
@@ -85,6 +130,15 @@ describe('Chan()', () => {
     }
     // res.sort(sortFunc)  // バッファーなしだと write 順にならぶ.
     expect(res).toEqual(s)
+
+    expect(mockBufReset).toBeCalled()
+    expect(
+      mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
+    ).toBeTruthy()
+    expect(mockValueReset).toBeCalled()
+    expect(
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
+    ).toBeTruthy()
   })
 
   it('should read all items(parallel)', async () => {
@@ -108,6 +162,15 @@ describe('Chan()', () => {
       res.push(v)
     }
     res.sort(sortFunc)
+
+    expect(mockBufReset).toBeCalled()
+    expect(
+      mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
+    ).toBeTruthy()
+    expect(mockValueReset).toBeCalled()
+    expect(
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
+    ).toBeTruthy()
     expect(res).toEqual(s)
   })
 
@@ -136,6 +199,15 @@ describe('Chan()', () => {
       res.push(v)
     }
     res.sort(sortFunc)
+
+    expect(mockBufReset).toBeCalled()
+    expect(
+      mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
+    ).toBeTruthy()
+    expect(mockValueReset).toBeCalled()
+    expect(
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
+    ).toBeTruthy()
     expect(res).toEqual(s)
   })
 
@@ -182,6 +254,15 @@ describe('Chan()', () => {
     }
     res.sort(sortFunc)
     expect(res).toEqual(s)
+
+    expect(mockBufReset).toBeCalled()
+    expect(
+      mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
+    ).toBeTruthy()
+    expect(mockValueReset).toBeCalled()
+    expect(
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
+    ).toBeTruthy()
   })
 
   it('should block writing if the buffer is not allocated', async () => {
@@ -194,14 +275,28 @@ describe('Chan()', () => {
       done[0] = true
       await c.write(pr[1][0]) // バッファーがないのでブロックされる.
       done[1] = true
+      c.close()
     })()
+    const i = c.reader()
     await (async () => {
       pr[0][1]()
-      await c.reader().next()
+      await i.next()
     })()
     expect(done[0]).toBeTruthy()
     expect(done[1]).toBeFalsy()
-    c.close()
+
+    pr[1][1]()
+    await i.next()
+    await i.next()
+
+    expect(mockBufReset).toBeCalled()
+    expect(
+      mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
+    ).toBeTruthy()
+    expect(mockValueReset).toBeCalled()
+    expect(
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
+    ).toBeTruthy()
   })
 
   it('should returns immediately if the buffer is not full(short)', async () => {
@@ -214,14 +309,28 @@ describe('Chan()', () => {
       done[0] = true
       await c.write(pr[1][0]) // バッファーが空いているのでブロックされない.
       done[1] = true
+      c.close()
     })()
+    const i = c.reader()
     await (async () => {
       pr[0][1]()
-      await c.reader().next()
+      await i.next()
     })()
     expect(done[0]).toBeTruthy()
     expect(done[1]).toBeTruthy()
-    c.close()
+
+    pr[1][1]()
+    await i.next()
+    await i.next()
+
+    expect(mockBufReset).toBeCalled()
+    expect(
+      mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
+    ).toBeTruthy()
+    expect(mockValueReset).toBeCalled()
+    expect(
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
+    ).toBeTruthy()
   })
 
   it('should returns immediately if the buffer is not full(long)', async () => {
@@ -262,6 +371,18 @@ describe('Chan()', () => {
     await i.next()
     await i.next()
     expect(cnt).toEqual(12)
+
+    for await (let v of i) {
+    }
+
+    expect(mockBufReset).toBeCalled()
+    expect(
+      mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
+    ).toBeTruthy()
+    expect(mockValueReset).toBeCalled()
+    expect(
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
+    ).toBeTruthy()
   })
 
   it('should catch rejected error', async () => {
@@ -299,5 +420,15 @@ describe('Chan()', () => {
     expect(res).toEqual(s.slice(0, 3))
     expect(writerError).toContain('rejected')
     expect(readerError).toContain('rejected')
+
+    expect(mockBufReset).toBeCalled()
+    expect(
+      mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
+    ).toBeTruthy()
+    expect(mockValueReset).toBeCalled()
+    expect(
+      mockValueReset.mock.calls.length <=
+        mockValueRelease.mock.calls.length + mockValueReject.mock.calls.length
+    ).toBeTruthy()
   })
 })
