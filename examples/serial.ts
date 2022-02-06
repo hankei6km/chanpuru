@@ -1,5 +1,4 @@
-import { Make } from '../src/index'
-//import { Make } from '../src/index.js'
+import { Chan } from '../src/index'
 
 const s: [string, number][] = [
   ['0', 100],
@@ -20,7 +19,7 @@ const pa: Promise<string>[] = s.map(
     new Promise((resolve) => setTimeout(() => resolve(value), timeout))
 )
 
-const c = new Make<string>()
+const c = new Chan<string>()
 
 const n = Date.now()
 ;(async () => {
