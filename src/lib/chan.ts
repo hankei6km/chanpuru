@@ -6,8 +6,8 @@ export class Chan<T> {
   private bufPromise!: Promise<void>
   private bufResolve!: (value: void) => void
 
-  private valuePromise!: Promise<T>
-  private valueResolve!: (value: T) => void
+  private valuePromise!: Promise<void>
+  private valueResolve!: (value: void) => void
   private valueReject!: (reason: any) => void
 
   private closed: boolean = false
@@ -33,8 +33,8 @@ export class Chan<T> {
       this.valueReject = reject
     })
   }
-  private valueRelease(v: T) {
-    this.valueResolve(v)
+  private valueRelease() {
+    this.valueResolve()
   }
   private async _writeWithoutBuf(p: Promise<T>): Promise<void> {
     while (true) {
@@ -83,7 +83,7 @@ export class Chan<T> {
       // race で返ってくる i は push される前の範囲におさまる.
       const [v, i] = await Promise.race(pa)
       this.buf.splice(i, 1)
-      this.valueRelease(v)
+      this.valueRelease()
       this.valueReset()
       return { value: v, done: false }
     }
