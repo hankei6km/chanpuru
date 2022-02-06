@@ -1,4 +1,4 @@
-export class Make<T> {
+export class Chan<T> {
   private bufSize = 0
   private buf!: Promise<T>[]
   private writeFunc!: (p: Promise<T>) => Promise<void>
