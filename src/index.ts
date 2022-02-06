@@ -1,1 +1,1 @@
-export { Chan as Make } from './lib/chan.js'
+export { Chan } from './lib/chan.js'
