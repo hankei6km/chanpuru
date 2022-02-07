@@ -80,7 +80,35 @@ describe('Chan()', () => {
   it('should close when read items the number of just bufSize', async () => {
     const s = ['0', '1']
     const pr = genPromiseResolve(s)
-    const c = new Chan<string>(1)
+    const c = new Chan<string>(2)
+    setTimeout(async () => {
+      ;(async () => {
+        await c.write(pr[0][0])
+        await c.write(pr[1][0])
+      })()
+      pr[0][1]()
+      pr[1][1]()
+      c.close()
+    }, 100)
+    const i = c.reader()
+    expect((await i.next()).value).toEqual('0')
+    expect((await i.next()).value).toEqual('1')
+    expect((await i.next()).done).toBeTruthy()
+
+    expect(mockBufReset).toBeCalled()
+    expect(
+      mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
+    ).toBeTruthy()
+    expect(mockValueReset).toBeCalled()
+    expect(
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
+    ).toBeTruthy()
+  })
+
+  it('should close when read items the number of just bufSize-1', async () => {
+    const s = ['0', '1']
+    const pr = genPromiseResolve(s)
+    const c = new Chan<string>(3)
     setTimeout(async () => {
       ;(async () => {
         await c.write(pr[0][0])
