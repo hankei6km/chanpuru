@@ -59,6 +59,104 @@ describe('Chan()', () => {
     ).toBeTruthy()
   })
 
+  it('should read item that is writed after read(parallel)', async () => {
+    const s = ['0', '1']
+    const pr = genPromiseResolve(s)
+    const c = new Chan<string>(3)
+    setTimeout(async () => {
+      ;(async () => {
+        await c.write(pr[0][0])
+        await c.write(pr[1][0])
+      })()
+      pr[0][1]()
+      pr[1][1]()
+      c.close()
+    }, 100)
+    const i = c.reader()
+    expect((await i.next()).value).toEqual('0')
+    expect((await i.next()).value).toEqual('1')
+    expect((await i.next()).done).toBeTruthy()
+
+    expect(mockBufReset).toBeCalled()
+    expect(
+      mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
+    ).toBeTruthy()
+    expect(mockValueReset).toBeCalled()
+    expect(
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
+    ).toBeTruthy()
+  })
+
+  it('should read item after write', async () => {
+    const s = ['0']
+    const pr = genPromiseResolve(s)
+    const c = new Chan<string>()
+    ;(async () => {
+      ;(async () => await c.write(pr[0][0]))()
+      pr[0][1]()
+      c.close()
+    })()
+
+    const v: IteratorResult<string, void>[] = []
+    await new Promise((resolve) => {
+      setTimeout(async () => {
+        const i = c.reader()
+        v.push(await i.next())
+        v.push(await i.next())
+        resolve(v)
+      }, 100)
+    })
+
+    expect(v[0].value).toEqual('0')
+    expect(v[1].done).toBeTruthy()
+    expect(mockBufReset).toBeCalled()
+    expect(
+      mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
+    ).toBeTruthy()
+    expect(mockValueReset).toBeCalled()
+    expect(
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
+    ).toBeTruthy()
+  })
+
+  it('should read item after write(parallel)', async () => {
+    const s = ['0', '1']
+    const pr = genPromiseResolve(s)
+    const c = new Chan<string>(3)
+    ;(async () => {
+      ;(async () => {
+        await c.write(pr[0][0])
+        await c.write(pr[1][0])
+      })()
+      pr[0][1]()
+      pr[1][1]()
+      c.close()
+    })()
+
+    const v: IteratorResult<string, void>[] = []
+    await new Promise((resolve) => {
+      setTimeout(async () => {
+        const i = c.reader()
+        v.push(await i.next())
+        v.push(await i.next())
+        v.push(await i.next())
+        resolve(v)
+      }, 100)
+    })
+
+    expect(v[0].value).toEqual('0')
+    expect(v[1].value).toEqual('1')
+    expect(v[2].done).toBeTruthy()
+    expect(mockBufReset).toBeCalled()
+    expect(
+      mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
+    ).toBeTruthy()
+    expect(mockValueReset).toBeCalled()
+    expect(
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
+    ).toBeTruthy()
+  })
+
   it('should close when buffer is empty', async () => {
     const c = new Chan<string>()
     setTimeout(() => {
