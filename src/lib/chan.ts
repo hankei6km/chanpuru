@@ -99,7 +99,8 @@ export class Chan<T> {
         // write 側へ空きができたことを通知が目的なので reject はしない.
         //this.valueReject(r)
         this.valueRelease()
-        this.valueReset()
+        // generator 側へ渡すと終了するので reset しない.
+        //this.valueReset()
         // generator 側へは reson を渡す.
         throw r
       }
