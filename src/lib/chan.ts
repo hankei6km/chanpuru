@@ -8,7 +8,6 @@ export class Chan<T> {
 
   private valuePromise!: Promise<void>
   private valueResolve!: (value: void) => void
-  private valueReject!: (reason: any) => void
 
   private closed: boolean = false
 
@@ -30,7 +29,6 @@ export class Chan<T> {
   private valueReset() {
     this.valuePromise = new Promise((resolve, reject) => {
       this.valueResolve = resolve
-      this.valueReject = reject
     })
   }
   private valueRelease() {
@@ -41,7 +39,10 @@ export class Chan<T> {
       if (this.buf.length === 0) {
         this.buf.push(p)
         this.bufRelease()
-        await p // 外部にバッファーは存在しないことになっているので自身の処理が解決するまで待つ.
+        // バッファーは存在しないことになっているので自身の処理が解決するまで待つ.
+        // ここでの reject はここまで(バッファーがあるときと挙動をあわせる).
+        // reason が必要であれば write 側で catch などを付けておく.
+        await p.catch((_r) => {})
         return
       }
       await this.valuePromise
@@ -50,6 +51,9 @@ export class Chan<T> {
   private async _writeWithBuf(p: Promise<T>): Promise<void> {
     while (true) {
       if (this.buf.length < this.bufSize) {
+        // バッファーが存在することになっているので自身の処理を待たない.
+        // よって reject されてもここでは検出できない.
+        // reason が必要であれば write 側で catch などを付けておく.
         this.buf.push(p)
         this.bufRelease()
         return
@@ -74,33 +78,46 @@ export class Chan<T> {
         (b, i) =>
           new Promise<[T, number]>((resolve, reject) => {
             b.then((v) => resolve([v, i])).catch((r) => {
-              reject(r)
-              this.valueReject(r)
+              reject([r, i])
+              return r
             })
           })
       )
       // 待っている間に this.buf に push  されることもあるが、
       // race で返ってくる i は push される前の範囲におさまる.
-      const [v, i] = await Promise.race(pa)
-      this.buf.splice(i, 1)
-      this.valueRelease()
-      this.valueReset()
-      return { value: v, done: false }
+      try {
+        const [v, i] = await Promise.race(pa)
+        this.buf.splice(i, 1)
+        // write 側へ空きができたことを通知.
+        this.valueRelease()
+        this.valueReset()
+        return { value: v, done: false }
+      } catch ([r, i]) {
+        if (typeof i === 'number') {
+          this.buf.splice(i, 1)
+        }
+        // write 側へ空きができたことを通知が目的なので reject はしない.
+        //this.valueReject(r)
+        this.valueRelease()
+        this.valueReset()
+        // generator 側へは reson を渡す.
+        throw r
+      }
     }
     this.clean()
     return { value: undefined, done: true }
   }
   async *reader(): AsyncGenerator<T, void, void> {
-    try {
-      while (true) {
+    while (true) {
+      try {
         const i = await this.reciver()
         if (i.done) {
           return
         }
         yield i.value as any
+      } catch (e) {
+        yield Promise.reject(e)
       }
-    } catch (e) {
-      throw e
     }
   }
   private clean() {

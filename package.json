@@ -26,7 +26,7 @@
   },
   "scripts": {
     "build": "npm run clean && tsc && rimraf dist/test && mv dist/src/* dist/ && rimraf dist/src",
-    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "test": "node --experimental-vm-modules --unhandled-rejections=strict node_modules/.bin/jest",
     "clean": "rimraf \"dist/*\"",
     "upgrade-interactive": "npm-check --update"
   },
