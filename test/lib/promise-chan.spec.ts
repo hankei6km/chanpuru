@@ -6,14 +6,12 @@ const mockBufReset = jest.spyOn(Chan.prototype as any, 'bufReset')
 const mockBufRelease = jest.spyOn(Chan.prototype as any, 'bufRelease')
 const mockValueReset = jest.spyOn(Chan.prototype as any, 'valueReset')
 const mockValueRelease = jest.spyOn(Chan.prototype as any, 'valueRelease')
-const mockValueReject = jest.spyOn(Chan.prototype as any, 'valueRelease')
 
 beforeEach(() => {
   mockBufReset.mockClear()
   mockBufRelease.mockClear()
   mockValueReset.mockClear()
   mockValueRelease.mockClear()
-  mockValueReject.mockClear()
 })
 
 describe('Chan()', () => {
@@ -399,7 +397,9 @@ describe('Chan()', () => {
           writerError = reason
           return reason
         })
-        await c.write(pr[i][0])
+        if (!writerError) {
+          await c.write(pr[i][0])
+        }
         cnt++
       }
       c.close()
@@ -431,8 +431,7 @@ describe('Chan()', () => {
     ).toBeTruthy()
     expect(mockValueReset).toBeCalled()
     expect(
-      mockValueReset.mock.calls.length <=
-        mockValueRelease.mock.calls.length + mockValueReject.mock.calls.length
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
   })
 
@@ -450,7 +449,9 @@ describe('Chan()', () => {
           writerError = reason
           return reason
         })
-        await c.write(pr[i][0])
+        if (!writerError) {
+          await c.write(pr[i][0])
+        }
         cnt++
       }
       c.close()
@@ -472,7 +473,7 @@ describe('Chan()', () => {
       readerError = e
     }
     res.sort(sortFunc)
-    // expect(res).toEqual(s.slice(0, 3)) // バッファーがあればサイズなどで writer の止まる位置は変動する.
+    expect(res).toEqual(s.slice(0, 3))
     expect(writerError).toEqual('rejected')
     expect(readerError).toEqual('rejected')
 
@@ -482,8 +483,7 @@ describe('Chan()', () => {
     ).toBeTruthy()
     expect(mockValueReset).toBeCalled()
     expect(
-      mockValueReset.mock.calls.length <=
-        mockValueRelease.mock.calls.length + mockValueReject.mock.calls.length
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
   })
 })
