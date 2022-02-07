@@ -1,6 +1,7 @@
 export type ChanOpts = {
   rejectInReader?: boolean
 }
+
 export class Chan<T> {
   private opts: ChanOpts = { rejectInReader: false }
   private bufSize = 0
