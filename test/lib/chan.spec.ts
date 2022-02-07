@@ -564,11 +564,11 @@ describe('Chan()', () => {
     ).toBeTruthy()
   })
 
-  it('should catch rejected error', async () => {
+  it('should reject in reader site', async () => {
     const len = 500
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
     const pr = genPromiseResolve(s)
-    const c = new Chan<string>()
+    const c = new Chan<string>(0, { rejectInReader: true })
     let cnt = 0
     let writerError: Error | undefined = undefined
     let readerError: Error | undefined = undefined
@@ -616,11 +616,11 @@ describe('Chan()', () => {
     ).toBeTruthy()
   })
 
-  it('should catch rejected error(parallel)', async () => {
+  it('should reject in reader side(parallel)', async () => {
     const len = 500
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
     const pr = genPromiseResolve(s)
-    const c = new Chan<string>(3)
+    const c = new Chan<string>(3, { rejectInReader: true })
     let cnt = 0
     let writerError: Error | undefined = undefined
     let readerError: Error | undefined = undefined
