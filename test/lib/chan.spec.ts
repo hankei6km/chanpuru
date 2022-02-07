@@ -335,6 +335,61 @@ describe('Chan()', () => {
     expect(res).toEqual(s)
   })
 
+  it('should read all items(multiple reader)', async () => {
+    const len = 500
+    const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
+    const pr = genPromiseResolve(s)
+    const c = new Chan<string>(3)
+    ;(async () => {
+      for (let i = 0; i < pr.length; i++) {
+        await c.write(pr[i][0])
+      }
+      c.close()
+    })()
+    const rev = [...pr].reverse()
+    const ps = [
+      ...rev.slice(100, 200),
+      ...rev.slice(0, 100),
+      ...rev.slice(400, 500),
+      ...rev.slice(300, 400),
+      ...rev.slice(200, 300)
+    ]
+    ps.forEach(([_p, r]) => process.nextTick(() => r()))
+    const res: string[] = []
+    let r1Cnt = 0
+    let r2Cnt = 0
+    const i = c.reader()
+    await Promise.all([
+      new Promise<void>(async (resolve) => {
+        for await (let v of i) {
+          res.push(v)
+          r1Cnt++
+        }
+        resolve()
+      }),
+      new Promise<void>(async (resolve) => {
+        for await (let v of i) {
+          res.push(v)
+          r2Cnt++
+        }
+        resolve()
+      })
+    ])
+    res.sort(sortFunc)
+    expect(r1Cnt).toBeGreaterThan(0)
+    expect(r2Cnt).toBeGreaterThan(0)
+    expect(res).toEqual(s)
+
+    expect(mockBufReset).toBeCalled()
+    expect(
+      mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
+    ).toBeTruthy()
+    expect(mockValueReset).toBeCalled()
+    expect(
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
+    ).toBeTruthy()
+  })
+
   it('should read all items(multiple writer)', async () => {
     const len = 500
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
