@@ -564,11 +564,115 @@ describe('Chan()', () => {
     ).toBeTruthy()
   })
 
-  it('should catch rejected error', async () => {
+  it('should close without reject reader side', async () => {
     const len = 500
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
     const pr = genPromiseResolve(s)
-    const c = new Chan<string>()
+    const c = new Chan<string>(0)
+    let cnt = 0
+    let writerError: Error | undefined = undefined
+    let readerError: Error | undefined = undefined
+    ;(async () => {
+      for (let i = 0; i < pr.length; i++) {
+        pr[i][0].catch((reason) => {
+          writerError = reason
+          return reason
+        })
+        if (!writerError) {
+          await c.write(pr[i][0])
+        }
+        cnt++
+      }
+      c.close()
+    })()
+    pr[0][1]()
+    pr[1][1]()
+    pr[2][1]()
+    pr[3][2]('rejected')
+    pr[4][1]()
+    pr[5][1]()
+    pr[6][1]()
+    pr[7][1]()
+    const res: string[] = []
+    try {
+      for await (let v of c.reader()) {
+        res.push(v)
+      }
+    } catch (e: any) {
+      readerError = e
+    }
+    res.sort(sortFunc)
+    expect(res).toEqual(s.slice(0, 3)) // バッファーが無ければ reject されたところで write 側が止まる.
+    expect(writerError).toEqual('rejected')
+    expect(readerError).toBeUndefined()
+
+    expect(mockBufReset).toBeCalled()
+    expect(
+      mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
+    ).toBeTruthy()
+    expect(mockValueReset).toBeCalled()
+    expect(
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
+    ).toBeTruthy()
+  })
+
+  it('should close without reject reader side(parallel)', async () => {
+    const len = 500
+    const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
+    const pr = genPromiseResolve(s)
+    const c = new Chan<string>(3)
+    let cnt = 0
+    let writerError: Error | undefined = undefined
+    let readerError: Error | undefined = undefined
+    ;(async () => {
+      for (let i = 0; i < pr.length; i++) {
+        pr[i][0].catch((reason) => {
+          writerError = reason
+          return reason
+        })
+        if (!writerError) {
+          await c.write(pr[i][0])
+        }
+        cnt++
+      }
+      c.close()
+    })()
+    pr[0][1]()
+    pr[1][1]()
+    pr[2][1]()
+    pr[3][2]('rejected')
+    pr[4][1]()
+    pr[5][1]()
+    pr[6][1]()
+    pr[7][1]()
+    const res: string[] = []
+    try {
+      for await (let v of c.reader()) {
+        res.push(v)
+      }
+    } catch (e: any) {
+      readerError = e
+    }
+    res.sort(sortFunc)
+    expect(res).toEqual(s.slice(0, 3))
+    expect(writerError).toEqual('rejected')
+    expect(readerError).toBeUndefined()
+
+    expect(mockBufReset).toBeCalled()
+    expect(
+      mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
+    ).toBeTruthy()
+    expect(mockValueReset).toBeCalled()
+    expect(
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
+    ).toBeTruthy()
+  })
+
+  it('should reject in reader site', async () => {
+    const len = 500
+    const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
+    const pr = genPromiseResolve(s)
+    const c = new Chan<string>(0, { rejectInReader: true })
     let cnt = 0
     let writerError: Error | undefined = undefined
     let readerError: Error | undefined = undefined
@@ -616,11 +720,11 @@ describe('Chan()', () => {
     ).toBeTruthy()
   })
 
-  it('should catch rejected error(parallel)', async () => {
+  it('should reject in reader side(parallel)', async () => {
     const len = 500
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
     const pr = genPromiseResolve(s)
-    const c = new Chan<string>(3)
+    const c = new Chan<string>(3, { rejectInReader: true })
     let cnt = 0
     let writerError: Error | undefined = undefined
     let readerError: Error | undefined = undefined
@@ -657,6 +761,156 @@ describe('Chan()', () => {
     expect(res).toEqual(s.slice(0, 3))
     expect(writerError).toEqual('rejected')
     expect(readerError).toEqual('rejected')
+
+    expect(mockBufReset).toBeCalled()
+    expect(
+      mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
+    ).toBeTruthy()
+    expect(mockValueReset).toBeCalled()
+    expect(
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
+    ).toBeTruthy()
+  })
+
+  it('should read items continue when rejcted', async () => {
+    const s = ['0', '1', '2', '3', '4', '5', '6', '7']
+    const pr = genPromiseResolve(s)
+    const c = new Chan<string>(0)
+    let cnt = 0
+    ;(async () => {
+      for (let i = 0; i < pr.length; i++) {
+        await c.write(pr[i][0])
+        cnt++
+      }
+      c.close()
+    })()
+    pr[0][1]()
+    pr[1][1]()
+    pr[2][1]()
+    pr[3][2]('rejected')
+    pr[4][1]()
+    pr[5][1]()
+    pr[6][1]()
+    pr[7][1]()
+    const res: string[] = []
+    for await (let v of c.reader()) {
+      res.push(v)
+    }
+    res.sort(sortFunc)
+    expect(res).toEqual(['0', '1', '2', '4', '5', '6', '7'])
+
+    expect(mockBufReset).toBeCalled()
+    expect(
+      mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
+    ).toBeTruthy()
+    expect(mockValueReset).toBeCalled()
+    expect(
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
+    ).toBeTruthy()
+  })
+
+  it('should read items continue when rejcted(parallel)', async () => {
+    const s = ['0', '1', '2', '3', '4', '5', '6', '7']
+    const pr = genPromiseResolve(s)
+    const c = new Chan<string>(3)
+    let cnt = 0
+    ;(async () => {
+      for (let i = 0; i < pr.length; i++) {
+        //pr[i][0].catch((r) => console.log(r))
+        await c.write(pr[i][0])
+        cnt++
+      }
+      c.close()
+    })()
+    pr[0][1]()
+    pr[1][1]()
+    pr[2][1]()
+    pr[3][2]('rejected')
+    pr[4][1]()
+    pr[5][1]()
+    pr[6][1]()
+    pr[7][1]()
+    const res: string[] = []
+    for await (let v of c.reader()) {
+      res.push(v)
+    }
+    res.sort(sortFunc)
+    expect(res).toEqual(['0', '1', '2', '4', '5', '6', '7'])
+
+    expect(mockBufReset).toBeCalled()
+    expect(
+      mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
+    ).toBeTruthy()
+    expect(mockValueReset).toBeCalled()
+    expect(
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
+    ).toBeTruthy()
+  })
+
+  it('should read items continue when rejcted last written item', async () => {
+    const s = ['0', '1', '2', '3', '4', '5', '6', '7']
+    const pr = genPromiseResolve(s)
+    const c = new Chan<string>(0)
+    let cnt = 0
+    ;(async () => {
+      for (let i = 0; i < pr.length; i++) {
+        await c.write(pr[i][0])
+        cnt++
+      }
+      c.close()
+    })()
+    pr[0][1]()
+    pr[1][1]()
+    pr[2][1]()
+    pr[3][2]('rejected')
+    pr[4][1]()
+    pr[5][1]()
+    pr[6][1]()
+    pr[7][2]('rejected')
+    const res: string[] = []
+    for await (let v of c.reader()) {
+      res.push(v)
+    }
+    res.sort(sortFunc)
+    expect(res).toEqual(['0', '1', '2', '4', '5', '6'])
+
+    expect(mockBufReset).toBeCalled()
+    expect(
+      mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
+    ).toBeTruthy()
+    expect(mockValueReset).toBeCalled()
+    expect(
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
+    ).toBeTruthy()
+  })
+
+  it('should read items continue when rejcted last written item(parallel)', async () => {
+    const s = ['0', '1', '2', '3', '4', '5', '6', '7']
+    const pr = genPromiseResolve(s)
+    const c = new Chan<string>(3)
+    let cnt = 0
+    ;(async () => {
+      for (let i = 0; i < pr.length; i++) {
+        //pr[i][0].catch((r) => console.log(r))
+        await c.write(pr[i][0])
+        cnt++
+      }
+      c.close()
+    })()
+    pr[0][1]()
+    pr[1][1]()
+    pr[2][1]()
+    pr[3][2]('rejected')
+    pr[4][1]()
+    pr[5][1]()
+    pr[6][1]()
+    pr[7][2]('rejected')
+    const res: string[] = []
+    for await (let v of c.reader()) {
+      res.push(v)
+    }
+    res.sort(sortFunc)
+    expect(res).toEqual(['0', '1', '2', '4', '5', '6'])
 
     expect(mockBufReset).toBeCalled()
     expect(

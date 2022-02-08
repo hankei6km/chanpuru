@@ -1,4 +1,9 @@
+export type ChanOpts = {
+  rejectInReader?: boolean
+}
+
 export class Chan<T> {
+  private opts: ChanOpts = { rejectInReader: false }
   private bufSize = 0
   private buf!: Promise<T>[]
   private writeFunc!: (p: Promise<T>) => Promise<void>
@@ -11,7 +16,11 @@ export class Chan<T> {
 
   private closed: boolean = false
 
-  constructor(bufSize: number = 0) {
+  constructor(bufSize: number = 0, opts: ChanOpts = {}) {
+    if (opts.rejectInReader !== undefined) {
+      this.opts.rejectInReader = opts.rejectInReader
+    }
+
     this.bufSize = bufSize === 0 ? 1 : bufSize // バッファーサイズ 0 のときも内部的にはバッファーは必要.
     this.writeFunc = bufSize === 0 ? this._writeWithoutBuf : this._writeWithBuf
     this.buf = []
@@ -99,9 +108,13 @@ export class Chan<T> {
         // write 側へ空きができたことを通知が目的なので reject はしない.
         //this.valueReject(r)
         this.valueRelease()
-        // generator 側へ渡すと終了するので reset しない.
-        //this.valueReset()
         // generator 側へは reson を渡す.
+        if (!this.opts.rejectInReader) {
+          // generator 側で reject しない場合は継続するので reset(次の準備をする).
+          // 継続した後にどのように処理するかは writer 側の呼び出し元による
+          // (reject を catch して close か?)
+          this.valueReset()
+        }
         throw r
       }
     }
@@ -117,7 +130,9 @@ export class Chan<T> {
         }
         yield i.value as any
       } catch (e) {
-        yield Promise.reject(e)
+        if (this.opts.rejectInReader) {
+          yield Promise.reject(e)
+        }
       }
     }
   }
