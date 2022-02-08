@@ -40,6 +40,35 @@ describe('Chan()', () => {
     return numA - numB
   }
 
+  it('should claen when closed immediately', async () => {
+    const c = new Chan<string>()
+    c.close()
+
+    expect(mockBufReset).toBeCalled()
+    expect(
+      mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
+    ).toBeTruthy()
+    expect(mockValueReset).toBeCalled()
+    expect(
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
+    ).toBeTruthy()
+  })
+
+  it('should reject when send to closed chan', async () => {
+    const c = new Chan<string>()
+    c.close()
+    await expect(c.send('0')).rejects.toThrow('panic: send on closed channel')
+
+    expect(mockBufReset).toBeCalled()
+    expect(
+      mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
+    ).toBeTruthy()
+    expect(mockValueReset).toBeCalled()
+    expect(
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
+    ).toBeTruthy()
+  })
+
   it('should receive item that is sended after receive', async () => {
     const s = ['0']
     const c = new Chan<string>()

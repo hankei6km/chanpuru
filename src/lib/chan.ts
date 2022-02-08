@@ -100,6 +100,6 @@ export class Chan<T> {
   }
   close() {
     this.closed = true
-    this.bufRelease()
+    this.clean()
   }
 }

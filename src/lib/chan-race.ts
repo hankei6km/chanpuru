@@ -145,6 +145,6 @@ export class ChanRace<T> {
   }
   close() {
     this.closed = true
-    this.bufRelease()
+    this.clean()
   }
 }
