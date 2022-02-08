@@ -1,9 +1,9 @@
-export type ChanRaceOpts = {
+export type ChanOpts = {
   rejectInReader?: boolean
 }
 
 export class Chan<T> {
-  private opts: ChanRaceOpts = { rejectInReader: false }
+  private opts: ChanOpts = { rejectInReader: false }
   private bufSize = 0
   private buf!: T[]
   private writeFunc!: (p: T) => Promise<void>
@@ -16,7 +16,7 @@ export class Chan<T> {
 
   private closed: boolean = false
 
-  constructor(bufSize: number = 0, opts: ChanRaceOpts = {}) {
+  constructor(bufSize: number = 0, opts: ChanOpts = {}) {
     if (opts.rejectInReader !== undefined) {
       this.opts.rejectInReader = opts.rejectInReader
     }
