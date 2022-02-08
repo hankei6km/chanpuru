@@ -1,12 +1,12 @@
 export type ChanRaceOpts = {
-  rejectInReader?: boolean
+  rejectInRecevier?: boolean
 }
 
 export class ChanRace<T> {
-  private opts: ChanRaceOpts = { rejectInReader: false }
+  private opts: ChanRaceOpts = { rejectInRecevier: false }
   private bufSize = 0
   private buf!: Promise<T>[]
-  private writeFunc!: (p: Promise<T>) => Promise<void>
+  private sendFunc!: (p: Promise<T>) => Promise<void>
 
   private bufPromise!: Promise<void>
   private bufResolve!: (value: void) => void
@@ -17,12 +17,12 @@ export class ChanRace<T> {
   private closed: boolean = false
 
   constructor(bufSize: number = 0, opts: ChanRaceOpts = {}) {
-    if (opts.rejectInReader !== undefined) {
-      this.opts.rejectInReader = opts.rejectInReader
+    if (opts.rejectInRecevier !== undefined) {
+      this.opts.rejectInRecevier = opts.rejectInRecevier
     }
 
     this.bufSize = bufSize === 0 ? 1 : bufSize // バッファーサイズ 0 のときも内部的にはバッファーは必要.
-    this.writeFunc = bufSize === 0 ? this._writeWithoutBuf : this._writeWithBuf
+    this.sendFunc = bufSize === 0 ? this._sendWithoutBuf : this._sendWithBuf
     this.buf = []
     this.bufReset()
     this.valueReset()
@@ -43,26 +43,26 @@ export class ChanRace<T> {
   private valueRelease() {
     this.valueResolve()
   }
-  private async _writeWithoutBuf(p: Promise<T>): Promise<void> {
+  private async _sendWithoutBuf(p: Promise<T>): Promise<void> {
     while (true) {
       if (this.buf.length === 0) {
         this.buf.push(p)
         this.bufRelease()
         // バッファーは存在しないことになっているので自身の処理が解決するまで待つ.
         // ここでの reject はここまで(バッファーがあるときと挙動をあわせる).
-        // reason が必要であれば write 側で catch などを付けておく.
+        // reason が必要であれば send 側で catch などを付けておく.
         await p.catch((_r) => {})
         return
       }
       await this.valuePromise
     }
   }
-  private async _writeWithBuf(p: Promise<T>): Promise<void> {
+  private async _sendWithBuf(p: Promise<T>): Promise<void> {
     while (true) {
       if (this.buf.length < this.bufSize) {
         // バッファーが存在することになっているので自身の処理を待たない.
         // よって reject されてもここでは検出できない.
-        // reason が必要であれば write 側で catch などを付けておく.
+        // reason が必要であれば send 側で catch などを付けておく.
         this.buf.push(p)
         this.bufRelease()
         return
@@ -70,14 +70,14 @@ export class ChanRace<T> {
       await this.valuePromise
     }
   }
-  async write(p: Promise<T>): Promise<void> {
+  async send(p: Promise<T>): Promise<void> {
     if (this.closed) {
-      throw new Error('panic: write on closed channel')
+      throw new Error('panic: send on closed channel')
     }
-    return this.writeFunc(p)
+    return this.sendFunc(p)
   }
-  private async reciver(): Promise<{ value: T | undefined; done: boolean }> {
-    // バッファーが埋まっていない場合は、write されるまで待つ.
+  private async _receiver(): Promise<{ value: T | undefined; done: boolean }> {
+    // バッファーが埋まっていない場合は、send されるまで待つ.
     // close されていれば素通し.
     while (this.buf.length < this.bufSize && !this.closed) {
       await this.bufPromise
@@ -100,7 +100,7 @@ export class ChanRace<T> {
       try {
         const [v, i] = await Promise.race(pa)
         this.buf.splice(i, 1)
-        // write 側へ空きができたことを通知.
+        // send 側へ空きができたことを通知.
         this.valueRelease()
         this.valueReset()
         return { value: v, done: false }
@@ -108,13 +108,13 @@ export class ChanRace<T> {
         if (typeof i === 'number') {
           this.buf.splice(i, 1)
         }
-        // write 側へ空きができたことを通知が目的なので reject はしない.
+        // send 側へ空きができたことを通知が目的なので reject はしない.
         //this.valueReject(r)
         this.valueRelease()
         // generator 側へは reson を渡す.
-        if (!this.opts.rejectInReader) {
+        if (!this.opts.rejectInRecevier) {
           // generator 側で reject しない場合は継続するので reset(次の準備をする).
-          // 継続した後にどのように処理するかは writer 側の呼び出し元による
+          // 継続した後にどのように処理するかは send 側の呼び出し元による
           // (reject を catch して close か?)
           this.valueReset()
         }
@@ -124,16 +124,16 @@ export class ChanRace<T> {
     this.clean()
     return { value: undefined, done: true }
   }
-  async *reader(): AsyncGenerator<T, void, void> {
+  async *receiver(): AsyncGenerator<T, void, void> {
     while (true) {
       try {
-        const i = await this.reciver()
+        const i = await this._receiver()
         if (i.done) {
           return
         }
         yield i.value as any
       } catch (e) {
-        if (this.opts.rejectInReader) {
+        if (this.opts.rejectInRecevier) {
           yield Promise.reject(e)
         }
       }

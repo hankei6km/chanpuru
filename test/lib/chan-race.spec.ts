@@ -36,16 +36,16 @@ describe('ChanRace()', () => {
     return numA - numB
   }
 
-  it('should read item that is writed after read', async () => {
+  it('should receive item that is sended after receive', async () => {
     const s = ['0']
     const pr = genPromiseResolve(s)
     const c = new ChanRace<string>()
     setTimeout(async () => {
-      ;(async () => await c.write(pr[0][0]))()
+      ;(async () => await c.send(pr[0][0]))()
       pr[0][1]()
       c.close()
     }, 100)
-    const i = c.reader()
+    const i = c.receiver()
     expect((await i.next()).value).toEqual('0')
     expect((await i.next()).done).toBeTruthy()
 
@@ -59,20 +59,20 @@ describe('ChanRace()', () => {
     ).toBeTruthy()
   })
 
-  it('should read item that is writed after read(parallel)', async () => {
+  it('should receive item that is sended after receive(parallel)', async () => {
     const s = ['0', '1']
     const pr = genPromiseResolve(s)
     const c = new ChanRace<string>(3)
     setTimeout(async () => {
       ;(async () => {
-        await c.write(pr[0][0])
-        await c.write(pr[1][0])
+        await c.send(pr[0][0])
+        await c.send(pr[1][0])
         c.close()
       })()
       pr[0][1]()
       pr[1][1]()
     }, 100)
-    const i = c.reader()
+    const i = c.receiver()
     expect((await i.next()).value).toEqual('0')
     expect((await i.next()).value).toEqual('1')
     expect((await i.next()).done).toBeTruthy()
@@ -87,13 +87,13 @@ describe('ChanRace()', () => {
     ).toBeTruthy()
   })
 
-  it('should read item after write', async () => {
+  it('should receive item after send', async () => {
     const s = ['0']
     const pr = genPromiseResolve(s)
     const c = new ChanRace<string>()
     ;(async () => {
       ;(async () => {
-        await c.write(pr[0][0])
+        await c.send(pr[0][0])
         c.close()
       })()
       pr[0][1]()
@@ -102,7 +102,7 @@ describe('ChanRace()', () => {
     const v: IteratorResult<string, void>[] = []
     await new Promise((resolve) => {
       setTimeout(async () => {
-        const i = c.reader()
+        const i = c.receiver()
         v.push(await i.next())
         v.push(await i.next())
         resolve(v)
@@ -121,14 +121,14 @@ describe('ChanRace()', () => {
     ).toBeTruthy()
   })
 
-  it('should read item after write(parallel)', async () => {
+  it('should receive item after send(parallel)', async () => {
     const s = ['0', '1']
     const pr = genPromiseResolve(s)
     const c = new ChanRace<string>(3)
     ;(async () => {
       ;(async () => {
-        await c.write(pr[0][0])
-        await c.write(pr[1][0])
+        await c.send(pr[0][0])
+        await c.send(pr[1][0])
         c.close()
       })()
       pr[0][1]()
@@ -138,7 +138,7 @@ describe('ChanRace()', () => {
     const v: IteratorResult<string, void>[] = []
     await new Promise((resolve) => {
       setTimeout(async () => {
-        const i = c.reader()
+        const i = c.receiver()
         v.push(await i.next())
         v.push(await i.next())
         v.push(await i.next())
@@ -164,7 +164,7 @@ describe('ChanRace()', () => {
     setTimeout(() => {
       c.close()
     }, 100)
-    const i = c.reader()
+    const i = c.receiver()
     expect((await i.next()).done).toBeTruthy()
 
     expect(mockBufReset).toBeCalled()
@@ -177,20 +177,20 @@ describe('ChanRace()', () => {
     ).toBeTruthy()
   })
 
-  it('should close when read items the number of just bufSize', async () => {
+  it('should close when receive items the number of just bufSize', async () => {
     const s = ['0', '1']
     const pr = genPromiseResolve(s)
     const c = new ChanRace<string>(2)
     setTimeout(async () => {
       ;(async () => {
-        await c.write(pr[0][0])
-        await c.write(pr[1][0])
+        await c.send(pr[0][0])
+        await c.send(pr[1][0])
         c.close()
       })()
       pr[0][1]()
       pr[1][1]()
     }, 100)
-    const i = c.reader()
+    const i = c.receiver()
     expect((await i.next()).value).toEqual('0')
     expect((await i.next()).value).toEqual('1')
     expect((await i.next()).done).toBeTruthy()
@@ -205,20 +205,20 @@ describe('ChanRace()', () => {
     ).toBeTruthy()
   })
 
-  it('should close when read items the number of just bufSize-1', async () => {
+  it('should close when receive items the number of just bufSize-1', async () => {
     const s = ['0', '1']
     const pr = genPromiseResolve(s)
     const c = new ChanRace<string>(3)
     setTimeout(async () => {
       ;(async () => {
-        await c.write(pr[0][0])
-        await c.write(pr[1][0])
+        await c.send(pr[0][0])
+        await c.send(pr[1][0])
         c.close()
       })()
       pr[0][1]()
       pr[1][1]()
     }, 100)
-    const i = c.reader()
+    const i = c.receiver()
     expect((await i.next()).value).toEqual('0')
     expect((await i.next()).value).toEqual('1')
     expect((await i.next()).done).toBeTruthy()
@@ -233,13 +233,13 @@ describe('ChanRace()', () => {
     ).toBeTruthy()
   })
 
-  it('should read all items', async () => {
+  it('should receive all items', async () => {
     const s = ['0', '1', '2', '3', '4', '5']
     const pr = genPromiseResolve(s)
     const c = new ChanRace<string>()
     ;(async () => {
       for (let i = 0; i < pr.length; i++) {
-        await c.write(pr[i][0])
+        await c.send(pr[i][0])
       }
       c.close()
     })()
@@ -251,10 +251,10 @@ describe('ChanRace()', () => {
     setTimeout(() => pr[4][1](), 70)
     setTimeout(() => pr[5][1](), 110)
     const res: string[] = []
-    for await (let v of c.reader()) {
+    for await (let v of c.receiver()) {
       res.push(v)
     }
-    // res.sort(sortFunc)  // バッファーなしだと write 順にならぶ.
+    // res.sort(sortFunc)  // バッファーなしだと send 順にならぶ.
     expect(res).toEqual(s)
 
     expect(mockBufReset).toBeCalled()
@@ -267,13 +267,13 @@ describe('ChanRace()', () => {
     ).toBeTruthy()
   })
 
-  it('should read all items(parallel)', async () => {
+  it('should receive all items(parallel)', async () => {
     const s = ['0', '1', '2', '3', '4', '5']
     const pr = genPromiseResolve(s)
     const c = new ChanRace<string>(2)
     ;(async () => {
       for (let i = 0; i < pr.length; i++) {
-        await c.write(pr[i][0])
+        await c.send(pr[i][0])
       }
       c.close()
     })()
@@ -284,7 +284,7 @@ describe('ChanRace()', () => {
     setTimeout(() => pr[4][1](), 70)
     setTimeout(() => pr[5][1](), 110)
     const res: string[] = []
-    for await (let v of c.reader()) {
+    for await (let v of c.receiver()) {
       res.push(v)
     }
     res.sort(sortFunc)
@@ -300,14 +300,14 @@ describe('ChanRace()', () => {
     expect(res).toEqual(s)
   })
 
-  it('should read all items(long)', async () => {
+  it('should receive all items(long)', async () => {
     const len = 500
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
     const pr = genPromiseResolve(s)
     const c = new ChanRace<string>(3)
     ;(async () => {
       for (let i = 0; i < pr.length; i++) {
-        await c.write(pr[i][0])
+        await c.send(pr[i][0])
       }
       c.close()
     })()
@@ -321,7 +321,7 @@ describe('ChanRace()', () => {
     ]
     ps.forEach(([_p, r]) => process.nextTick(() => r()))
     const res: string[] = []
-    for await (let v of c.reader()) {
+    for await (let v of c.receiver()) {
       res.push(v)
     }
     res.sort(sortFunc)
@@ -337,14 +337,14 @@ describe('ChanRace()', () => {
     expect(res).toEqual(s)
   })
 
-  it('should read all items(multiple reader)', async () => {
+  it('should receive all items(multiple receive)', async () => {
     const len = 500
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
     const pr = genPromiseResolve(s)
     const c = new ChanRace<string>(3)
     ;(async () => {
       for (let i = 0; i < pr.length; i++) {
-        await c.write(pr[i][0])
+        await c.send(pr[i][0])
       }
       c.close()
     })()
@@ -360,7 +360,7 @@ describe('ChanRace()', () => {
     const res: string[] = []
     let r1Cnt = 0
     let r2Cnt = 0
-    const i = c.reader()
+    const i = c.receiver()
     await Promise.all([
       new Promise<void>(async (resolve) => {
         for await (let v of i) {
@@ -392,7 +392,7 @@ describe('ChanRace()', () => {
     ).toBeTruthy()
   })
 
-  it('should read all items(multiple writer)', async () => {
+  it('should receive all items(multiple send)', async () => {
     const len = 500
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
     const pr = genPromiseResolve(s)
@@ -411,26 +411,26 @@ describe('ChanRace()', () => {
     ]
     ;(async () => {
       for (let i = 0; i < 250; i++) {
-        await c.write(pr[i][0])
+        await c.send(pr[i][0])
       }
       relaseResolve[0]()
     })()
     ;(async () => {
       for (let i = 250; i < 400; i++) {
-        await c.write(pr[i][0])
+        await c.send(pr[i][0])
       }
       relaseResolve[1]()
     })()
     ;(async () => {
       for (let i = 400; i < len; i++) {
-        await c.write(pr[i][0])
+        await c.send(pr[i][0])
       }
       relaseResolve[2]()
     })()
     Promise.all(promise).then(() => c.close())
     pr.forEach(([_p, r]) => process.nextTick(() => r()))
     const res: string[] = []
-    for await (let v of c.reader()) {
+    for await (let v of c.receiver()) {
       res.push(v)
     }
     res.sort(sortFunc)
@@ -452,13 +452,13 @@ describe('ChanRace()', () => {
     const c = new ChanRace<string>()
     let done = [false, false]
     ;(async () => {
-      await c.write(pr[0][0])
+      await c.send(pr[0][0])
       done[0] = true
-      await c.write(pr[1][0]) // バッファーがないのでブロックされる.
+      await c.send(pr[1][0]) // バッファーがないのでブロックされる.
       done[1] = true
       c.close()
     })()
-    const i = c.reader()
+    const i = c.receiver()
     await (async () => {
       pr[0][1]()
       await i.next()
@@ -486,13 +486,13 @@ describe('ChanRace()', () => {
     const c = new ChanRace<string>(2)
     let done = [false, false]
     ;(async () => {
-      await c.write(pr[0][0])
+      await c.send(pr[0][0])
       done[0] = true
-      await c.write(pr[1][0]) // バッファーが空いているのでブロックされない.
+      await c.send(pr[1][0]) // バッファーが空いているのでブロックされない.
       done[1] = true
       c.close()
     })()
-    const i = c.reader()
+    const i = c.receiver()
     await (async () => {
       pr[0][1]()
       await i.next()
@@ -522,7 +522,7 @@ describe('ChanRace()', () => {
     let cnt = 0
     ;(async () => {
       for (let i = 0; i < pr.length; i++) {
-        await c.write(pr[i][0])
+        await c.send(pr[i][0])
         cnt++
       }
       c.close()
@@ -536,11 +536,11 @@ describe('ChanRace()', () => {
       ...rev.slice(200, 300)
     ]
     ps.forEach(([_p, r]) => process.nextTick(() => r()))
-    const i = c.reader()
+    const i = c.receiver()
     expect(cnt).toEqual(0)
     await i.next()
-    // 内部バッファーサイズ = 3、next でリリースされたので 1 回 write が成功.
-    // generator 側の処理を変更すると write 成功前に戻ってくるので値は変動する.
+    // 内部バッファーサイズ = 3、next でリリースされたので 1 回 send が成功.
+    // generator 側の処理を変更すると send 成功前に戻ってくるので値は変動する.
     expect(cnt).toEqual(4)
     await i.next()
     await i.next()
@@ -566,22 +566,22 @@ describe('ChanRace()', () => {
     ).toBeTruthy()
   })
 
-  it('should close without reject reader side', async () => {
+  it('should close without reject receiver side', async () => {
     const len = 500
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
     const pr = genPromiseResolve(s)
     const c = new ChanRace<string>(0)
     let cnt = 0
-    let writerError: Error | undefined = undefined
-    let readerError: Error | undefined = undefined
+    let senderError: Error | undefined = undefined
+    let receiverError: Error | undefined = undefined
     ;(async () => {
       for (let i = 0; i < pr.length; i++) {
         pr[i][0].catch((reason) => {
-          writerError = reason
+          senderError = reason
           return reason
         })
-        if (!writerError) {
-          await c.write(pr[i][0])
+        if (!senderError) {
+          await c.send(pr[i][0])
         }
         cnt++
       }
@@ -597,16 +597,16 @@ describe('ChanRace()', () => {
     pr[7][1]()
     const res: string[] = []
     try {
-      for await (let v of c.reader()) {
+      for await (let v of c.receiver()) {
         res.push(v)
       }
     } catch (e: any) {
-      readerError = e
+      receiverError = e
     }
     res.sort(sortFunc)
-    expect(res).toEqual(s.slice(0, 3)) // バッファーが無ければ reject されたところで write 側が止まる.
-    expect(writerError).toEqual('rejected')
-    expect(readerError).toBeUndefined()
+    expect(res).toEqual(s.slice(0, 3)) // バッファーが無ければ reject されたところで send 側が止まる.
+    expect(senderError).toEqual('rejected')
+    expect(receiverError).toBeUndefined()
 
     expect(mockBufReset).toBeCalled()
     expect(
@@ -618,22 +618,22 @@ describe('ChanRace()', () => {
     ).toBeTruthy()
   })
 
-  it('should close without reject reader side(parallel)', async () => {
+  it('should close without reject receiver side(parallel)', async () => {
     const len = 500
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
     const pr = genPromiseResolve(s)
     const c = new ChanRace<string>(3)
     let cnt = 0
-    let writerError: Error | undefined = undefined
-    let readerError: Error | undefined = undefined
+    let senderError: Error | undefined = undefined
+    let receiverError: Error | undefined = undefined
     ;(async () => {
       for (let i = 0; i < pr.length; i++) {
         pr[i][0].catch((reason) => {
-          writerError = reason
+          senderError = reason
           return reason
         })
-        if (!writerError) {
-          await c.write(pr[i][0])
+        if (!senderError) {
+          await c.send(pr[i][0])
         }
         cnt++
       }
@@ -649,16 +649,16 @@ describe('ChanRace()', () => {
     pr[7][1]()
     const res: string[] = []
     try {
-      for await (let v of c.reader()) {
+      for await (let v of c.receiver()) {
         res.push(v)
       }
     } catch (e: any) {
-      readerError = e
+      receiverError = e
     }
     res.sort(sortFunc)
     expect(res).toEqual(s.slice(0, 3))
-    expect(writerError).toEqual('rejected')
-    expect(readerError).toBeUndefined()
+    expect(senderError).toEqual('rejected')
+    expect(receiverError).toBeUndefined()
 
     expect(mockBufReset).toBeCalled()
     expect(
@@ -670,22 +670,22 @@ describe('ChanRace()', () => {
     ).toBeTruthy()
   })
 
-  it('should reject in reader site', async () => {
+  it('should reject in receiver side', async () => {
     const len = 500
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
     const pr = genPromiseResolve(s)
-    const c = new ChanRace<string>(0, { rejectInReader: true })
+    const c = new ChanRace<string>(0, { rejectInRecevier: true })
     let cnt = 0
-    let writerError: Error | undefined = undefined
-    let readerError: Error | undefined = undefined
+    let senderError: Error | undefined = undefined
+    let receiverError: Error | undefined = undefined
     ;(async () => {
       for (let i = 0; i < pr.length; i++) {
         pr[i][0].catch((reason) => {
-          writerError = reason
+          senderError = reason
           return reason
         })
-        if (!writerError) {
-          await c.write(pr[i][0])
+        if (!senderError) {
+          await c.send(pr[i][0])
         }
         cnt++
       }
@@ -701,16 +701,16 @@ describe('ChanRace()', () => {
     pr[7][1]()
     const res: string[] = []
     try {
-      for await (let v of c.reader()) {
+      for await (let v of c.receiver()) {
         res.push(v)
       }
     } catch (e: any) {
-      readerError = e
+      receiverError = e
     }
     res.sort(sortFunc)
-    expect(res).toEqual(s.slice(0, 3)) // バッファーが無ければ reject されたところで write 側が止まる.
-    expect(writerError).toEqual('rejected')
-    expect(readerError).toEqual('rejected')
+    expect(res).toEqual(s.slice(0, 3)) // バッファーが無ければ reject されたところで send 側が止まる.
+    expect(senderError).toEqual('rejected')
+    expect(receiverError).toEqual('rejected')
 
     expect(mockBufReset).toBeCalled()
     expect(
@@ -722,22 +722,22 @@ describe('ChanRace()', () => {
     ).toBeTruthy()
   })
 
-  it('should reject in reader side(parallel)', async () => {
+  it('should reject in receiver side(parallel)', async () => {
     const len = 500
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
     const pr = genPromiseResolve(s)
-    const c = new ChanRace<string>(3, { rejectInReader: true })
+    const c = new ChanRace<string>(3, { rejectInRecevier: true })
     let cnt = 0
-    let writerError: Error | undefined = undefined
-    let readerError: Error | undefined = undefined
+    let senderError: Error | undefined = undefined
+    let receiverError: Error | undefined = undefined
     ;(async () => {
       for (let i = 0; i < pr.length; i++) {
         pr[i][0].catch((reason) => {
-          writerError = reason
+          senderError = reason
           return reason
         })
-        if (!writerError) {
-          await c.write(pr[i][0])
+        if (!senderError) {
+          await c.send(pr[i][0])
         }
         cnt++
       }
@@ -753,16 +753,16 @@ describe('ChanRace()', () => {
     pr[7][1]()
     const res: string[] = []
     try {
-      for await (let v of c.reader()) {
+      for await (let v of c.receiver()) {
         res.push(v)
       }
     } catch (e: any) {
-      readerError = e
+      receiverError = e
     }
     res.sort(sortFunc)
     expect(res).toEqual(s.slice(0, 3))
-    expect(writerError).toEqual('rejected')
-    expect(readerError).toEqual('rejected')
+    expect(senderError).toEqual('rejected')
+    expect(receiverError).toEqual('rejected')
 
     expect(mockBufReset).toBeCalled()
     expect(
@@ -774,14 +774,14 @@ describe('ChanRace()', () => {
     ).toBeTruthy()
   })
 
-  it('should read items continue when rejcted', async () => {
+  it('should receive items continue when rejcted', async () => {
     const s = ['0', '1', '2', '3', '4', '5', '6', '7']
     const pr = genPromiseResolve(s)
     const c = new ChanRace<string>(0)
     let cnt = 0
     ;(async () => {
       for (let i = 0; i < pr.length; i++) {
-        await c.write(pr[i][0])
+        await c.send(pr[i][0])
         cnt++
       }
       c.close()
@@ -795,7 +795,7 @@ describe('ChanRace()', () => {
     pr[6][1]()
     pr[7][1]()
     const res: string[] = []
-    for await (let v of c.reader()) {
+    for await (let v of c.receiver()) {
       res.push(v)
     }
     res.sort(sortFunc)
@@ -811,7 +811,7 @@ describe('ChanRace()', () => {
     ).toBeTruthy()
   })
 
-  it('should read items continue when rejcted(parallel)', async () => {
+  it('should receive items continue when rejcted(parallel)', async () => {
     const s = ['0', '1', '2', '3', '4', '5', '6', '7']
     const pr = genPromiseResolve(s)
     const c = new ChanRace<string>(3)
@@ -819,7 +819,7 @@ describe('ChanRace()', () => {
     ;(async () => {
       for (let i = 0; i < pr.length; i++) {
         //pr[i][0].catch((r) => console.log(r))
-        await c.write(pr[i][0])
+        await c.send(pr[i][0])
         cnt++
       }
       c.close()
@@ -833,7 +833,7 @@ describe('ChanRace()', () => {
     pr[6][1]()
     pr[7][1]()
     const res: string[] = []
-    for await (let v of c.reader()) {
+    for await (let v of c.receiver()) {
       res.push(v)
     }
     res.sort(sortFunc)
@@ -849,14 +849,14 @@ describe('ChanRace()', () => {
     ).toBeTruthy()
   })
 
-  it('should read items continue when rejcted last written item', async () => {
+  it('should receive items continue when rejcted last written item', async () => {
     const s = ['0', '1', '2', '3', '4', '5', '6', '7']
     const pr = genPromiseResolve(s)
     const c = new ChanRace<string>(0)
     let cnt = 0
     ;(async () => {
       for (let i = 0; i < pr.length; i++) {
-        await c.write(pr[i][0])
+        await c.send(pr[i][0])
         cnt++
       }
       c.close()
@@ -870,7 +870,7 @@ describe('ChanRace()', () => {
     pr[6][1]()
     pr[7][2]('rejected')
     const res: string[] = []
-    for await (let v of c.reader()) {
+    for await (let v of c.receiver()) {
       res.push(v)
     }
     res.sort(sortFunc)
@@ -886,7 +886,7 @@ describe('ChanRace()', () => {
     ).toBeTruthy()
   })
 
-  it('should read items continue when rejcted last written item(parallel)', async () => {
+  it('should receive items continue when rejcted last written item(parallel)', async () => {
     const s = ['0', '1', '2', '3', '4', '5', '6', '7']
     const pr = genPromiseResolve(s)
     const c = new ChanRace<string>(3)
@@ -894,7 +894,7 @@ describe('ChanRace()', () => {
     ;(async () => {
       for (let i = 0; i < pr.length; i++) {
         //pr[i][0].catch((r) => console.log(r))
-        await c.write(pr[i][0])
+        await c.send(pr[i][0])
         cnt++
       }
       c.close()
@@ -908,7 +908,7 @@ describe('ChanRace()', () => {
     pr[6][1]()
     pr[7][2]('rejected')
     const res: string[] = []
-    for await (let v of c.reader()) {
+    for await (let v of c.receiver()) {
       res.push(v)
     }
     res.sort(sortFunc)
