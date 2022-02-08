@@ -1,1 +1,1 @@
-export { Chan } from './lib/chan.js'
+export { PromiseChan as Chan } from './lib/promise-chan.js'
