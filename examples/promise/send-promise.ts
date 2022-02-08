@@ -8,14 +8,14 @@ const pa = [
 ]
 ;(async () => {
   for (let p of pa) {
-    await c.write(() => p)
+    await c.send(() => p)
   }
   c.close()
 })()
 
 const r: Promise<string>[] = []
 ;(async () => {
-  for await (let i of c.reader()) {
+  for await (let i of c.receiver()) {
     r.push(i())
   }
   console.log(`race : ${await Promise.race(r)}`)

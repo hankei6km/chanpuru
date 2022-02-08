@@ -21,14 +21,14 @@ const n = Date.now()
 ;(async () => {
   for (let idx = 0; idx < s.length; idx++) {
     console.log(
-      `write start elapsed time: ${`${Date.now() - n}`.padStart(
+      `send start elapsed time: ${`${Date.now() - n}`.padStart(
         4,
         '0'
       )} index: ${idx}`
     )
-    await c.write(p(s[idx][0], s[idx][1]))
+    await c.send(p(s[idx][0], s[idx][1]))
     console.log(
-      `write done  elapsed time: ${`${Date.now() - n}`.padStart(
+      `send done  elapsed time: ${`${Date.now() - n}`.padStart(
         4,
         '0'
       )} index: ${idx}`
@@ -37,9 +37,9 @@ const n = Date.now()
   c.close()
 })()
 ;(async () => {
-  for await (let i of c.reader()) {
+  for await (let i of c.receiver()) {
     console.log(
-      `read        elapsed time: ${`${Date.now() - n}`.padStart(
+      `recv       elapsed time: ${`${Date.now() - n}`.padStart(
         4,
         '0'
       )} value: ${i}`
@@ -49,30 +49,30 @@ const n = Date.now()
 
 // $ node --loader ts-node/esm examples/serial.ts
 //
-// write start elapsed time: 0000 index: 0
-// write done  elapsed time: 0002 index: 0
-// write start elapsed time: 0003 index: 1
-// write done  elapsed time: 0004 index: 1
-// write start elapsed time: 0004 index: 2
-// write done  elapsed time: 0005 index: 2
-// write start elapsed time: 0005 index: 3
-// write done  elapsed time: 0005 index: 3
-// write start elapsed time: 0005 index: 4
-// read        elapsed time: 0081 value: 0
-// write done  elapsed time: 0081 index: 4
-// write start elapsed time: 0082 index: 5
-// read        elapsed time: 0104 value: 1
-// write done  elapsed time: 0104 index: 5
-// write start elapsed time: 0105 index: 6
-// read        elapsed time: 0105 value: 2
-// write done  elapsed time: 0105 index: 6
-// write start elapsed time: 0105 index: 7
-// read        elapsed time: 0286 value: 3
-// write done  elapsed time: 0286 index: 7
-// write start elapsed time: 0286 index: 8
-// read        elapsed time: 0286 value: 4
-// write done  elapsed time: 0286 index: 8
-// read        elapsed time: 0322 value: 5
-// read        elapsed time: 0322 value: 6
-// read        elapsed time: 0322 value: 7
-// read        elapsed time: 0416 value: 8
+// send start elapsed time: 0000 index: 0
+// send done  elapsed time: 0002 index: 0
+// send start elapsed time: 0003 index: 1
+// send done  elapsed time: 0004 index: 1
+// send start elapsed time: 0004 index: 2
+// send done  elapsed time: 0005 index: 2
+// send start elapsed time: 0005 index: 3
+// send done  elapsed time: 0005 index: 3
+// send start elapsed time: 0005 index: 4
+// recv       elapsed time: 0081 value: 0
+// send done  elapsed time: 0081 index: 4
+// send start elapsed time: 0082 index: 5
+// recv       elapsed time: 0104 value: 1
+// send done  elapsed time: 0104 index: 5
+// send start elapsed time: 0105 index: 6
+// recv       elapsed time: 0105 value: 2
+// send done  elapsed time: 0105 index: 6
+// send start elapsed time: 0105 index: 7
+// recv       elapsed time: 0286 value: 3
+// send done  elapsed time: 0286 index: 7
+// send start elapsed time: 0286 index: 8
+// recv       elapsed time: 0286 value: 4
+// send done  elapsed time: 0286 index: 8
+// recv       elapsed time: 0322 value: 5
+// recv       elapsed time: 0322 value: 6
+// recv       elapsed time: 0322 value: 7
+// recv       elapsed time: 0416 value: 8
