@@ -1,14 +1,11 @@
 import { jest } from '@jest/globals'
-import { PromiseChan } from '../../src/lib/promise-chan.js'
+import { ChanRace } from '../../src/lib/chan-race.js'
 
 // https://stackoverflow.com/questions/43265944/is-there-any-way-to-mock-private-functions-with-jest
-const mockBufReset = jest.spyOn(PromiseChan.prototype as any, 'bufReset')
-const mockBufRelease = jest.spyOn(PromiseChan.prototype as any, 'bufRelease')
-const mockValueReset = jest.spyOn(PromiseChan.prototype as any, 'valueReset')
-const mockValueRelease = jest.spyOn(
-  PromiseChan.prototype as any,
-  'valueRelease'
-)
+const mockBufReset = jest.spyOn(ChanRace.prototype as any, 'bufReset')
+const mockBufRelease = jest.spyOn(ChanRace.prototype as any, 'bufRelease')
+const mockValueReset = jest.spyOn(ChanRace.prototype as any, 'valueReset')
+const mockValueRelease = jest.spyOn(ChanRace.prototype as any, 'valueRelease')
 
 beforeEach(() => {
   mockBufReset.mockClear()
@@ -17,7 +14,7 @@ beforeEach(() => {
   mockValueRelease.mockClear()
 })
 
-describe('PromiseChan()', () => {
+describe('ChanRace()', () => {
   const genPromiseResolve = function (
     s: string[]
   ): [Promise<string>, () => void, (e: any) => void][] {
@@ -42,7 +39,7 @@ describe('PromiseChan()', () => {
   it('should read item that is writed after read', async () => {
     const s = ['0']
     const pr = genPromiseResolve(s)
-    const c = new PromiseChan<string>()
+    const c = new ChanRace<string>()
     setTimeout(async () => {
       ;(async () => await c.write(pr[0][0]))()
       pr[0][1]()
@@ -65,7 +62,7 @@ describe('PromiseChan()', () => {
   it('should read item that is writed after read(parallel)', async () => {
     const s = ['0', '1']
     const pr = genPromiseResolve(s)
-    const c = new PromiseChan<string>(3)
+    const c = new ChanRace<string>(3)
     setTimeout(async () => {
       ;(async () => {
         await c.write(pr[0][0])
@@ -93,7 +90,7 @@ describe('PromiseChan()', () => {
   it('should read item after write', async () => {
     const s = ['0']
     const pr = genPromiseResolve(s)
-    const c = new PromiseChan<string>()
+    const c = new ChanRace<string>()
     ;(async () => {
       ;(async () => await c.write(pr[0][0]))()
       pr[0][1]()
@@ -125,7 +122,7 @@ describe('PromiseChan()', () => {
   it('should read item after write(parallel)', async () => {
     const s = ['0', '1']
     const pr = genPromiseResolve(s)
-    const c = new PromiseChan<string>(3)
+    const c = new ChanRace<string>(3)
     ;(async () => {
       ;(async () => {
         await c.write(pr[0][0])
@@ -161,7 +158,7 @@ describe('PromiseChan()', () => {
   })
 
   it('should close when buffer is empty', async () => {
-    const c = new PromiseChan<string>()
+    const c = new ChanRace<string>()
     setTimeout(() => {
       c.close()
     }, 100)
@@ -181,7 +178,7 @@ describe('PromiseChan()', () => {
   it('should close when read items the number of just bufSize', async () => {
     const s = ['0', '1']
     const pr = genPromiseResolve(s)
-    const c = new PromiseChan<string>(2)
+    const c = new ChanRace<string>(2)
     setTimeout(async () => {
       ;(async () => {
         await c.write(pr[0][0])
@@ -209,7 +206,7 @@ describe('PromiseChan()', () => {
   it('should close when read items the number of just bufSize-1', async () => {
     const s = ['0', '1']
     const pr = genPromiseResolve(s)
-    const c = new PromiseChan<string>(3)
+    const c = new ChanRace<string>(3)
     setTimeout(async () => {
       ;(async () => {
         await c.write(pr[0][0])
@@ -237,7 +234,7 @@ describe('PromiseChan()', () => {
   it('should read all items', async () => {
     const s = ['0', '1', '2', '3', '4', '5']
     const pr = genPromiseResolve(s)
-    const c = new PromiseChan<string>()
+    const c = new ChanRace<string>()
     ;(async () => {
       for (let i = 0; i < pr.length; i++) {
         await c.write(pr[i][0])
@@ -271,7 +268,7 @@ describe('PromiseChan()', () => {
   it('should read all items(parallel)', async () => {
     const s = ['0', '1', '2', '3', '4', '5']
     const pr = genPromiseResolve(s)
-    const c = new PromiseChan<string>(2)
+    const c = new ChanRace<string>(2)
     ;(async () => {
       for (let i = 0; i < pr.length; i++) {
         await c.write(pr[i][0])
@@ -305,7 +302,7 @@ describe('PromiseChan()', () => {
     const len = 500
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
     const pr = genPromiseResolve(s)
-    const c = new PromiseChan<string>(3)
+    const c = new ChanRace<string>(3)
     ;(async () => {
       for (let i = 0; i < pr.length; i++) {
         await c.write(pr[i][0])
@@ -342,7 +339,7 @@ describe('PromiseChan()', () => {
     const len = 500
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
     const pr = genPromiseResolve(s)
-    const c = new PromiseChan<string>(3)
+    const c = new ChanRace<string>(3)
     ;(async () => {
       for (let i = 0; i < pr.length; i++) {
         await c.write(pr[i][0])
@@ -397,7 +394,7 @@ describe('PromiseChan()', () => {
     const len = 500
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
     const pr = genPromiseResolve(s)
-    const c = new PromiseChan<string>(3)
+    const c = new ChanRace<string>(3)
     const relaseResolve = new Array<(value: void) => void>(3)
     const promise = [
       new Promise((resolve) => {
@@ -450,7 +447,7 @@ describe('PromiseChan()', () => {
   it('should block writing if the buffer is not allocated', async () => {
     const s = ['0', '1']
     const pr = genPromiseResolve(s)
-    const c = new PromiseChan<string>()
+    const c = new ChanRace<string>()
     let done = [false, false]
     ;(async () => {
       await c.write(pr[0][0])
@@ -484,7 +481,7 @@ describe('PromiseChan()', () => {
   it('should returns immediately if the buffer is not full(short)', async () => {
     const s = ['0', '1']
     const pr = genPromiseResolve(s)
-    const c = new PromiseChan<string>(2)
+    const c = new ChanRace<string>(2)
     let done = [false, false]
     ;(async () => {
       await c.write(pr[0][0])
@@ -519,7 +516,7 @@ describe('PromiseChan()', () => {
     const len = 500
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
     const pr = genPromiseResolve(s)
-    const c = new PromiseChan<string>(3)
+    const c = new ChanRace<string>(3)
     let cnt = 0
     ;(async () => {
       for (let i = 0; i < pr.length; i++) {
@@ -571,7 +568,7 @@ describe('PromiseChan()', () => {
     const len = 500
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
     const pr = genPromiseResolve(s)
-    const c = new PromiseChan<string>(0)
+    const c = new ChanRace<string>(0)
     let cnt = 0
     let writerError: Error | undefined = undefined
     let readerError: Error | undefined = undefined
@@ -623,7 +620,7 @@ describe('PromiseChan()', () => {
     const len = 500
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
     const pr = genPromiseResolve(s)
-    const c = new PromiseChan<string>(3)
+    const c = new ChanRace<string>(3)
     let cnt = 0
     let writerError: Error | undefined = undefined
     let readerError: Error | undefined = undefined
@@ -675,7 +672,7 @@ describe('PromiseChan()', () => {
     const len = 500
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
     const pr = genPromiseResolve(s)
-    const c = new PromiseChan<string>(0, { rejectInReader: true })
+    const c = new ChanRace<string>(0, { rejectInReader: true })
     let cnt = 0
     let writerError: Error | undefined = undefined
     let readerError: Error | undefined = undefined
@@ -727,7 +724,7 @@ describe('PromiseChan()', () => {
     const len = 500
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
     const pr = genPromiseResolve(s)
-    const c = new PromiseChan<string>(3, { rejectInReader: true })
+    const c = new ChanRace<string>(3, { rejectInReader: true })
     let cnt = 0
     let writerError: Error | undefined = undefined
     let readerError: Error | undefined = undefined
@@ -778,7 +775,7 @@ describe('PromiseChan()', () => {
   it('should read items continue when rejcted', async () => {
     const s = ['0', '1', '2', '3', '4', '5', '6', '7']
     const pr = genPromiseResolve(s)
-    const c = new PromiseChan<string>(0)
+    const c = new ChanRace<string>(0)
     let cnt = 0
     ;(async () => {
       for (let i = 0; i < pr.length; i++) {
@@ -815,7 +812,7 @@ describe('PromiseChan()', () => {
   it('should read items continue when rejcted(parallel)', async () => {
     const s = ['0', '1', '2', '3', '4', '5', '6', '7']
     const pr = genPromiseResolve(s)
-    const c = new PromiseChan<string>(3)
+    const c = new ChanRace<string>(3)
     let cnt = 0
     ;(async () => {
       for (let i = 0; i < pr.length; i++) {
@@ -853,7 +850,7 @@ describe('PromiseChan()', () => {
   it('should read items continue when rejcted last written item', async () => {
     const s = ['0', '1', '2', '3', '4', '5', '6', '7']
     const pr = genPromiseResolve(s)
-    const c = new PromiseChan<string>(0)
+    const c = new ChanRace<string>(0)
     let cnt = 0
     ;(async () => {
       for (let i = 0; i < pr.length; i++) {
@@ -890,7 +887,7 @@ describe('PromiseChan()', () => {
   it('should read items continue when rejcted last written item(parallel)', async () => {
     const s = ['0', '1', '2', '3', '4', '5', '6', '7']
     const pr = genPromiseResolve(s)
-    const c = new PromiseChan<string>(3)
+    const c = new ChanRace<string>(3)
     let cnt = 0
     ;(async () => {
       for (let i = 0; i < pr.length; i++) {
