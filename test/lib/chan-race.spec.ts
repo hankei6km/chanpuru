@@ -67,10 +67,10 @@ describe('ChanRace()', () => {
       ;(async () => {
         await c.write(pr[0][0])
         await c.write(pr[1][0])
+        c.close()
       })()
       pr[0][1]()
       pr[1][1]()
-      c.close()
     }, 100)
     const i = c.reader()
     expect((await i.next()).value).toEqual('0')
@@ -92,9 +92,11 @@ describe('ChanRace()', () => {
     const pr = genPromiseResolve(s)
     const c = new ChanRace<string>()
     ;(async () => {
-      ;(async () => await c.write(pr[0][0]))()
+      ;(async () => {
+        await c.write(pr[0][0])
+        c.close()
+      })()
       pr[0][1]()
-      c.close()
     })()
 
     const v: IteratorResult<string, void>[] = []
@@ -127,10 +129,10 @@ describe('ChanRace()', () => {
       ;(async () => {
         await c.write(pr[0][0])
         await c.write(pr[1][0])
+        c.close()
       })()
       pr[0][1]()
       pr[1][1]()
-      c.close()
     })()
 
     const v: IteratorResult<string, void>[] = []
@@ -183,10 +185,10 @@ describe('ChanRace()', () => {
       ;(async () => {
         await c.write(pr[0][0])
         await c.write(pr[1][0])
+        c.close()
       })()
       pr[0][1]()
       pr[1][1]()
-      c.close()
     }, 100)
     const i = c.reader()
     expect((await i.next()).value).toEqual('0')
@@ -211,10 +213,10 @@ describe('ChanRace()', () => {
       ;(async () => {
         await c.write(pr[0][0])
         await c.write(pr[1][0])
+        c.close()
       })()
       pr[0][1]()
       pr[1][1]()
-      c.close()
     }, 100)
     const i = c.reader()
     expect((await i.next()).value).toEqual('0')
