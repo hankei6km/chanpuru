@@ -1,9 +1,9 @@
-import { Chan } from '../src/index'
+import { Chan } from '../src/index.js'
 
 const s: [string, number][] = [
   ['0', 100],
   ['1', 280],
-  ['2', 10],
+  ['2', 50],
   ['3', 80],
   ['4', 200],
   ['5', 240],
@@ -44,21 +44,21 @@ const n = Date.now()
 
 // $ node --loader ts-node/esm examples/serial.ts
 //
-// write elapsed time: 0101 index: 0
-// read  elapsed time: 0102 value: 0
-// write elapsed time: 0149 index: 1
-// read  elapsed time: 0150 value: 1
-// write elapsed time: 0330 index: 2
-// read  elapsed time: 0330 value: 2
-// write elapsed time: 0410 index: 3
-// read  elapsed time: 0411 value: 3
-// write elapsed time: 0610 index: 4
-// read  elapsed time: 0611 value: 4
-// write elapsed time: 0850 index: 5
-// read  elapsed time: 0850 value: 5
-// write elapsed time: 1000 index: 6
-// read  elapsed time: 1001 value: 6
-// write elapsed time: 1010 index: 7
-// read  elapsed time: 1011 value: 7
-// write elapsed time: 1140 index: 8
-// read  elapsed time: 1140 value: 8
+// write elapsed time: 0100 index: 0
+// read  elapsed time: 0101 value: 0
+// write elapsed time: 0380 index: 1
+// read  elapsed time: 0380 value: 1
+// write elapsed time: 0430 index: 2
+// read  elapsed time: 0430 value: 2
+// write elapsed time: 0510 index: 3
+// read  elapsed time: 0510 value: 3
+// write elapsed time: 0710 index: 4
+// read  elapsed time: 0710 value: 4
+// write elapsed time: 0950 index: 5
+// read  elapsed time: 0950 value: 5
+// write elapsed time: 1100 index: 6
+// read  elapsed time: 1101 value: 6
+// write elapsed time: 1110 index: 7
+// read  elapsed time: 1110 value: 7
+// write elapsed time: 1240 index: 8
+// read  elapsed time: 1241 value: 8
