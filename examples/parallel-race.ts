@@ -1,4 +1,4 @@
-import { Chan } from '../src/index.js'
+import { PromiseChan } from '../src/index.js'
 
 const s: [string, number][] = [
   ['0', 80],
@@ -19,7 +19,7 @@ const pa: Promise<string>[] = s.map(
     new Promise((resolve) => setTimeout(() => resolve(value), timeout))
 )
 
-const c = new Chan<Promise<string>>(3)
+const c = new PromiseChan<string>(3)
 
 const n = Date.now()
 ;(async () => {
@@ -45,20 +45,18 @@ const n = Date.now()
 // $ node --loader ts-node/esm examples/serial.ts
 //
 // write elapsed time: 0000 index: 0
-// write elapsed time: 0000 index: 1
+// write elapsed time: 0001 index: 1
 // write elapsed time: 0001 index: 2
-// write elapsed time: 0001 index: 3
-// read  elapsed time: 0079 value: 0
-// write elapsed time: 0080 index: 4
+// write elapsed time: 0050 index: 3
+// read  elapsed time: 0051 value: 2
+// write elapsed time: 0079 index: 4read  elapsed time: 0080 value: 0
+// write elapsed time: 0100 index: 5
 // read  elapsed time: 0100 value: 1
-// write elapsed time: 0101 index: 5
-// read  elapsed time: 0101 value: 2
-// write elapsed time: 0101 index: 6
-// read  elapsed time: 0279 value: 3
-// write elapsed time: 0280 index: 7
-// read  elapsed time: 0280 value: 4
-// write elapsed time: 0281 index: 8
-// read  elapsed time: 0281 value: 5
-// read  elapsed time: 0281 value: 6
-// read  elapsed time: 0282 value: 7
-// read  elapsed time: 0282 value: 8
+// write elapsed time: 0200 index: 6
+// read  elapsed time: 0200 value: 4
+// write elapsed time: 0201 index: 7
+// read  elapsed time: 0201 value: 6
+// write elapsed time: 0201 index: 8
+// read  elapsed time: 0202 value: 7
+// read  elapsed time: 0202 value: 8
+// read  elapsed time: 0240 value: 5read  elapsed time: 0280 value: 3
