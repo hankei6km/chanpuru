@@ -14,6 +14,10 @@ beforeEach(() => {
   mockValueRelease.mockClear()
 })
 
+afterEach(() => {
+  jest.useRealTimers()
+})
+
 describe('Chan()', () => {
   const genPromiseResolve = function (
     s: string[]
@@ -830,6 +834,41 @@ describe('Chan()', () => {
     }
     res.sort(sortFunc)
     expect(res).toEqual(['0', '1', '2', '4', '5', '6'])
+
+    expect(mockBufReset).toBeCalled()
+    expect(
+      mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
+    ).toBeTruthy()
+    expect(mockValueReset).toBeCalled()
+    expect(
+      mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
+    ).toBeTruthy()
+  })
+
+  it('should send promise via async generator(yield)', async () => {
+    jest.useFakeTimers()
+    const pr = [
+      new Promise<string>((resolve) => setTimeout(() => resolve('0'), 2000)),
+      new Promise<string>((resolve) => setTimeout(() => resolve('1'), 1000))
+    ]
+    const c = new Chan<() => Promise<string>>()
+    ;(async () => {
+      ;(async () => {
+        await c.write(() => pr[0])
+        await c.write(() => pr[1])
+      })()
+      c.close()
+    })()
+
+    const v: Promise<string>[] = []
+    for await (let p of c.reader()) {
+      v.push(p())
+    }
+
+    jest.advanceTimersByTime(1000)
+    expect(await Promise.race(v)).toEqual('1')
+    jest.advanceTimersByTime(1000)
+    expect(await Promise.race(v)).toEqual('0')
 
     expect(mockBufReset).toBeCalled()
     expect(
