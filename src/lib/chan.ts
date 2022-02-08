@@ -1,4 +1,9 @@
+export type ChanRaceOpts = {
+  rejectInReader?: boolean
+}
+
 export class Chan<T> {
+  private opts: ChanRaceOpts = { rejectInReader: false }
   private bufSize = 0
   private buf!: T[]
   private writeFunc!: (p: T) => Promise<void>
@@ -11,7 +16,10 @@ export class Chan<T> {
 
   private closed: boolean = false
 
-  constructor(bufSize: number = 0) {
+  constructor(bufSize: number = 0, opts: ChanRaceOpts = {}) {
+    if (opts.rejectInReader !== undefined) {
+      this.opts.rejectInReader = opts.rejectInReader
+    }
     this.bufSize = bufSize === 0 ? 1 : bufSize // バッファーサイズ 0 のときも内部的にはバッファーは必要.
     this.writeFunc = this._writeWithBuf
     this.buf = []
@@ -68,11 +76,19 @@ export class Chan<T> {
   }
   async *reader(): AsyncGenerator<T, void, void> {
     while (true) {
-      const i = await this.reciver()
-      if (i.done) {
-        return
+      try {
+        const i = await this.reciver()
+        if (i.done) {
+          return
+        }
+        yield i.value as any
+      } catch (r) {
+        // T が Promise のときは yield で待つようなので catch する.
+        if (this.opts.rejectInReader) {
+          this.clean() // ここで Promise の処理入れたくないのだが.
+          yield Promise.reject(r)
+        }
       }
-      yield i.value as any
     }
   }
   private clean() {
