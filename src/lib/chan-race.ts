@@ -71,6 +71,9 @@ export class ChanRace<T> {
     }
   }
   async write(p: Promise<T>): Promise<void> {
+    if (this.closed) {
+      throw new Error('panic: write on closed channel')
+    }
     return this.writeFunc(p)
   }
   private async reciver(): Promise<{ value: T | undefined; done: boolean }> {

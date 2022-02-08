@@ -44,8 +44,10 @@ describe('Chan()', () => {
     const s = ['0']
     const c = new Chan<string>()
     setTimeout(async () => {
-      ;(async () => await c.write(s[0]))()
-      c.close()
+      ;(async () => {
+        await c.write(s[0])
+        c.close()
+      })()
     }, 100)
     const i = c.reader()
     expect((await i.next()).value).toEqual('0')
@@ -65,8 +67,10 @@ describe('Chan()', () => {
     const s = ['0']
     const c = new Chan<string>()
     setTimeout(async () => {
-      ;(async () => await c.write(s[0]))()
-      c.close()
+      ;(async () => {
+        await c.write(s[0])
+        c.close()
+      })()
     }, 100)
     const i = c.reader()
     expect((await i.next()).value).toEqual('0')
@@ -89,8 +93,8 @@ describe('Chan()', () => {
       ;(async () => {
         await c.write(s[0])
         await c.write(s[1])
+        c.close()
       })()
-      c.close()
     }, 100)
     const i = c.reader()
     expect((await i.next()).value).toEqual('0')
@@ -111,10 +115,8 @@ describe('Chan()', () => {
     const s = ['0', '1']
     const c = new Chan<string>(3)
     ;(async () => {
-      ;(async () => {
-        await c.write(s[0])
-        await c.write(s[1])
-      })()
+      await c.write(s[0])
+      await c.write(s[1])
       c.close()
     })()
 
@@ -167,8 +169,8 @@ describe('Chan()', () => {
       ;(async () => {
         await c.write(s[0])
         await c.write(s[1])
+        c.close()
       })()
-      c.close()
     }, 100)
     const i = c.reader()
     expect((await i.next()).value).toEqual('0')
@@ -192,8 +194,8 @@ describe('Chan()', () => {
       ;(async () => {
         await c.write(s[0])
         await c.write(s[1])
+        c.close()
       })()
-      c.close()
     }, 100)
     const i = c.reader()
     expect((await i.next()).value).toEqual('0')
@@ -853,10 +855,8 @@ describe('Chan()', () => {
     ]
     const c = new Chan<() => Promise<string>>()
     ;(async () => {
-      ;(async () => {
-        await c.write(() => pr[0])
-        await c.write(() => pr[1])
-      })()
+      await c.write(() => pr[0])
+      await c.write(() => pr[1])
       c.close()
     })()
 
