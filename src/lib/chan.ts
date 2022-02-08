@@ -1,12 +1,12 @@
 export type ChanOpts = {
-  rejectInReader?: boolean
+  rejectInReceiver?: boolean
 }
 
 export class Chan<T> {
-  private opts: ChanOpts = { rejectInReader: false }
+  private opts: ChanOpts = { rejectInReceiver: false }
   private bufSize = 0
   private buf!: T[]
-  private writeFunc!: (p: T) => Promise<void>
+  private sendFunc!: (p: T) => Promise<void>
 
   private bufPromise!: Promise<void>
   private bufResolve!: (value: void) => void
@@ -17,11 +17,11 @@ export class Chan<T> {
   private closed: boolean = false
 
   constructor(bufSize: number = 0, opts: ChanOpts = {}) {
-    if (opts.rejectInReader !== undefined) {
-      this.opts.rejectInReader = opts.rejectInReader
+    if (opts.rejectInReceiver !== undefined) {
+      this.opts.rejectInReceiver = opts.rejectInReceiver
     }
     this.bufSize = bufSize === 0 ? 1 : bufSize // バッファーサイズ 0 のときも内部的にはバッファーは必要.
-    this.writeFunc = this._writeWithBuf
+    this.sendFunc = this._sendWithBuf
     this.buf = []
     this.bufReset()
     this.valueReset()
@@ -42,7 +42,7 @@ export class Chan<T> {
   private valueRelease() {
     this.valueResolve()
   }
-  private async _writeWithBuf(p: T): Promise<void> {
+  private async _sendWithBuf(p: T): Promise<void> {
     while (true) {
       if (this.buf.length < this.bufSize) {
         this.buf.push(p)
@@ -52,14 +52,14 @@ export class Chan<T> {
       await this.valuePromise
     }
   }
-  async write(p: T): Promise<void> {
+  async send(p: T): Promise<void> {
     if (this.closed) {
-      throw new Error('panic: write on closed channel')
+      throw new Error('panic: send on closed channel')
     }
-    return this.writeFunc(p)
+    return this.sendFunc(p)
   }
-  private async reciver(): Promise<{ value: T | undefined; done: boolean }> {
-    // バッファーが埋まっていない場合は、write されるまで待つ.
+  private async _receiver(): Promise<{ value: T | undefined; done: boolean }> {
+    // バッファーが埋まっていない場合は、send されるまで待つ.
     // close されていれば素通し.
     while (this.buf.length < this.bufSize && !this.closed) {
       await this.bufPromise
@@ -69,7 +69,7 @@ export class Chan<T> {
     // 通常は消費しない、close されていれば何度か呼びだされるうちに消費される.
     if (this.buf.length > 0) {
       const v = this.buf.shift()
-      // write 側へ空きができたことを通知.
+      // send 側へ空きができたことを通知.
       this.valueRelease()
       this.valueReset()
       return { value: v, done: false }
@@ -77,17 +77,17 @@ export class Chan<T> {
     this.clean()
     return { value: undefined, done: true }
   }
-  async *reader(): AsyncGenerator<T, void, void> {
+  async *receiver(): AsyncGenerator<T, void, void> {
     while (true) {
       try {
-        const i = await this.reciver()
+        const i = await this._receiver()
         if (i.done) {
           return
         }
         yield i.value as any
       } catch (r) {
         // T が Promise のときは yield で待つようなので catch する.
-        if (this.opts.rejectInReader) {
+        if (this.opts.rejectInReceiver) {
           this.clean() // ここで Promise の処理入れたくないのだが.
           yield Promise.reject(r)
         }
