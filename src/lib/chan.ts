@@ -3,18 +3,18 @@ export type ChanOpts = {
 }
 
 export class Chan<T> {
-  private opts: ChanOpts = { rejectInReceiver: false }
-  private bufSize = 0
-  private buf!: T[]
-  private sendFunc!: (p: T) => Promise<void>
+  protected opts: ChanOpts = { rejectInReceiver: false }
+  protected bufSize = 0
+  protected buf!: T[]
+  protected sendFunc!: (p: T) => Promise<void>
 
-  private bufPromise!: Promise<void>
-  private bufResolve!: (value: void) => void
+  protected bufPromise!: Promise<void>
+  protected bufResolve!: (value: void) => void
 
-  private valuePromise!: Promise<void>
-  private valueResolve!: (value: void) => void
+  protected valuePromise!: Promise<void>
+  protected valueResolve!: (value: void) => void
 
-  private closed: boolean = false
+  protected closed: boolean = false
 
   constructor(bufSize: number = 0, opts: ChanOpts = {}) {
     if (opts.rejectInReceiver !== undefined) {
@@ -26,23 +26,23 @@ export class Chan<T> {
     this.bufReset()
     this.valueReset()
   }
-  private bufReset() {
+  protected bufReset() {
     this.bufPromise = new Promise((resolve) => {
       this.bufResolve = resolve
     })
   }
-  private bufRelease() {
+  protected bufRelease() {
     this.bufResolve()
   }
-  private valueReset() {
+  protected valueReset() {
     this.valuePromise = new Promise((resolve, reject) => {
       this.valueResolve = resolve
     })
   }
-  private valueRelease() {
+  protected valueRelease() {
     this.valueResolve()
   }
-  private async _sendWithBuf(p: T): Promise<void> {
+  protected async _sendWithBuf(p: T): Promise<void> {
     while (true) {
       if (this.buf.length < this.bufSize) {
         this.buf.push(p)
@@ -94,7 +94,7 @@ export class Chan<T> {
       }
     }
   }
-  private clean() {
+  protected clean() {
     this.bufRelease()
     this.valueRelease()
   }

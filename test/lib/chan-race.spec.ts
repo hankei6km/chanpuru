@@ -705,7 +705,7 @@ describe('ChanRace()', () => {
     const len = 500
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
     const pr = genPromiseResolve(s)
-    const c = new ChanRace<string>(0, { rejectInRecevier: true })
+    const c = new ChanRace<string>(0, { rejectInReceiver: true })
     let cnt = 0
     let senderError: Error | undefined = undefined
     let receiverError: Error | undefined = undefined
@@ -757,7 +757,7 @@ describe('ChanRace()', () => {
     const len = 500
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
     const pr = genPromiseResolve(s)
-    const c = new ChanRace<string>(3, { rejectInRecevier: true })
+    const c = new ChanRace<string>(3, { rejectInReceiver: true })
     let cnt = 0
     let senderError: Error | undefined = undefined
     let receiverError: Error | undefined = undefined
