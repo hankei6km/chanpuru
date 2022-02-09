@@ -52,7 +52,7 @@ export class Chan<T> {
       await this.valuePromise
     }
   }
-  async send(p: T): Promise<void> {
+  readonly send = async (p: T): Promise<void> => {
     if (this.closed) {
       throw new Error('panic: send on closed channel')
     }
