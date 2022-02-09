@@ -1,8 +1,8 @@
-import { Chan } from '../../src/index.js'
+import { Chan, CahnSend, CahnRecv } from '../../src/index.js'
 
 async function proc1(
-  recv: AsyncGenerator<() => Promise<number>, void, void>,
-  send: Chan<() => Promise<string>>['send']
+  recv: CahnRecv<() => Promise<number>>,
+  send: CahnSend<() => Promise<string>>
 ) {
   for await (let ip of recv) {
     const p = new Promise<string>(async (resolve) => {
@@ -17,8 +17,8 @@ async function proc1(
 }
 
 async function proc2(
-  recv: AsyncGenerator<() => Promise<number>, void, void>,
-  send: Chan<() => Promise<string>>['send']
+  recv: CahnRecv<() => Promise<number>>,
+  send: CahnSend<() => Promise<string>>
 ) {
   for await (let ip of recv) {
     const i = await ip()
