@@ -103,3 +103,6 @@ export class Chan<T> {
     this.clean()
   }
 }
+
+export type CahnSend<T> = Chan<T>['send']
+export type CahnRecv<T> = AsyncGenerator<T, void, void>
