@@ -1,5 +1,5 @@
 export type ChanOpts = {
-  rejectInReceiver?: boolean
+  // rejectInReceiver?: boolean  // 受信側に伝播させると for await...of で止まるのでやめる.
 }
 
 export class Chan<T> {
@@ -17,9 +17,6 @@ export class Chan<T> {
   protected closed: boolean = false
 
   constructor(bufSize: number = 0, opts: ChanOpts = {}) {
-    if (opts.rejectInReceiver !== undefined) {
-      this.opts.rejectInReceiver = opts.rejectInReceiver
-    }
     this.bufSize = bufSize === 0 ? 1 : bufSize // バッファーサイズ 0 のときも内部的にはバッファーは必要.
     this.sendFunc = this._sendWithBuf
     this.buf = []
@@ -87,10 +84,10 @@ export class Chan<T> {
         yield i.value as any
       } catch (r) {
         // T が Promise のときは yield で待つようなので catch する.
-        if (this.opts.rejectInReceiver) {
-          this.clean() // ここで Promise の処理入れたくないのだが.
-          yield Promise.reject(r)
-        }
+        // if (this.opts.rejectInReceiver) {
+        //   // this.clean() // ここで Promise の処理入れたくないのだが. 入れるとバッファーに残ったものが受信されない.
+        //   yield Promise.reject(r)
+        // }
       }
     }
   }

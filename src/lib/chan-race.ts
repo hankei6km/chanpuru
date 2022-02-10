@@ -78,12 +78,12 @@ export class ChanRace<T> extends ChanG<Promise<T>> {
         //this.valueReject(r)
         this.valueRelease()
         // generator 側へは reson を渡す.
-        if (!this.opts.rejectInReceiver) {
-          // generator 側で reject しない場合は継続するので reset(次の準備をする).
-          // 継続した後にどのように処理するかは send 側の呼び出し元による
-          // (reject を catch して close か?)
-          this.valueReset()
-        }
+        //if (!this.opts.rejectInReceiver) {
+        //  // generator 側で reject しない場合は継続するので reset(次の準備をする).
+        //  // 継続した後にどのように処理するかは send 側の呼び出し元による
+        //  // (reject を catch して close か?)
+        //  this.valueReset()
+        //}
         throw r
       }
     }
@@ -99,9 +99,9 @@ export class ChanRace<T> extends ChanG<Promise<T>> {
         }
         yield i.value as any
       } catch (e) {
-        if (this.opts.rejectInReceiver) {
-          yield Promise.reject(e)
-        }
+        //if (this.opts.rejectInReceiver) {
+        //  yield Promise.reject(e)
+        //}
       }
     }
   }
