@@ -1,4 +1,7 @@
 import { Chan } from '../../src/index.js'
+import { log } from '../util.js'
+
+const { print, printElapsed } = log()
 
 const s: [string, number][] = [
   ['0', 80],
@@ -20,30 +23,15 @@ const c = new Chan<Promise<string>>(0)
 const n = Date.now()
 ;(async () => {
   for (let idx = 0; idx < s.length; idx++) {
-    console.log(
-      `send start elapsed time: ${`${Date.now() - n}`.padStart(
-        4,
-        '0'
-      )} index: ${idx}`
-    )
+    printElapsed('send start elapsed time', `index: ${idx}`)
     await c.send(p(s[idx][0], s[idx][1]))
-    console.log(
-      `send done  elapsed time: ${`${Date.now() - n}`.padStart(
-        4,
-        '0'
-      )} index: ${idx}`
-    )
+    printElapsed('send done  elapsed time', `index: ${idx}`)
   }
   c.close()
 })()
 ;(async () => {
   for await (let i of c.receiver()) {
-    console.log(
-      `recv       elapsed time: ${`${Date.now() - n}`.padStart(
-        4,
-        '0'
-      )} value: ${i}`
-    )
+    printElapsed('recv       elapsed time', `value: ${i}`)
   }
 })()
 

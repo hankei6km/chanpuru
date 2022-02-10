@@ -1,8 +1,8 @@
 import { Chan, CahnSend, CahnRecv } from '../../src/index.js'
 
 async function proc1(
-  recv: CahnRecv<() => Promise<number>>,
-  send: CahnSend<() => Promise<string>>
+  send: CahnSend<() => Promise<string>>,
+  recv: CahnRecv<() => Promise<number>>
 ) {
   for await (let ip of recv) {
     const p = new Promise<string>(async (resolve) => {
@@ -17,8 +17,8 @@ async function proc1(
 }
 
 async function proc2(
-  recv: CahnRecv<() => Promise<number>>,
-  send: CahnSend<() => Promise<string>>
+  send: CahnSend<() => Promise<string>>,
+  recv: CahnRecv<() => Promise<number>>
 ) {
   for await (let ip of recv) {
     const i = await ip()
@@ -32,36 +32,40 @@ async function proc2(
   }
 }
 
-const ch1 = new Chan<() => Promise<number>>(2)
-const ch2 = new Chan<() => Promise<number>>(2)
+function run(input: number[]): Chan<() => Promise<string>> {
+  const ch1 = new Chan<() => Promise<number>>(2)
+  const ch2 = new Chan<() => Promise<number>>(2)
+  const chIn = new Chan<() => Promise<string>>(3)
 
-const chIn = new Chan<() => Promise<string>>(3)
-
-;(async () => {
-  for (let i of [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
-    const p = Promise.resolve(i)
-    if (i % 2 === 0) {
-      await ch1.send(() => p)
-    } else {
-      await ch2.send(() => p)
+  ;(async () => {
+    for (let i of input) {
+      const p = Promise.resolve(i)
+      if (i % 2 === 0) {
+        await ch1.send(() => p)
+      } else {
+        await ch2.send(() => p)
+      }
     }
-  }
-  console.log('close ch1')
-  ch1.close()
-  console.log('close ch2')
-  ch2.close()
-})()
-;(async () => {
-  await Promise.all([
-    proc1(ch1.receiver(), chIn.send),
-    proc2(ch2.receiver(), chIn.send)
-  ])
-  セレクト使わなくてもいけるよな
-  console.log('close chIn')
-  chIn.close()
-})()
+    console.log('close ch1')
+    ch1.close()
+    console.log('close ch2')
+    ch2.close()
+  })()
+  ;(async () => {
+    await Promise.all([
+      proc1(chIn.send, ch1.receiver()),
+      proc2(chIn.send, ch2.receiver())
+    ])
+    console.log('close chIn')
+    chIn.close()
+  })()
+
+  return chIn
+}
+
 await (async () => {
-  for await (let i of chIn.receiver()) {
+  const ch = run([1, 2, 3, 4, 5, 6, 7, 8, 9])
+  for await (let i of ch.receiver()) {
     console.log(`recv: start`)
     console.log(`recv: ${await i()}`)
   }
