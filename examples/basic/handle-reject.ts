@@ -10,9 +10,10 @@ const s: Src[] = [
   ['d', 'f', 2000],
   ['e', 'r', 800], // 少し待ってから reject
   ['f', 'f', 200],
-  ['h', 'f', 1000],
-  ['j', 'f', 600],
-  ['k', 'f', 700]
+  ['g', 'f', 1000],
+  ['h', 'f', 600],
+  ['i', 'f', 700],
+  ['j', 'f', 300]
 ]
 
 const c = new Chan<Promise<string>>(3)
@@ -20,17 +21,18 @@ const c = new Chan<Promise<string>>(3)
 ;(async () => {
   let err: any
   for (let idx = 0; err === undefined && idx < s.length; idx++) {
-    print(`send start ${idx + 1}`)
+    // print(`send start ${idx + 1}`)
     const p = genPromose(s[idx], print)
     // chain の末尾になるようにする.
-    // ここでの戻り値を send すると chain の先頭になるのでバッファーの中で reject されない.
+    // ここでの戻り値(新し Promise インスタンス)を send すると
+    // chain の先頭になるのでバッファーの中で reject されない.
     // (このサンプルだと send しようとしても型があわないからそもそもできない)
     p.catch((r) => {
       console.log(`handle reject(send loop) ${r}`)
       err = r
     })
     await c.send(p)
-    print(`send end ${idx + 1}`)
+    // print(`send end ${idx + 1}`)
   }
   c.close()
 })()
