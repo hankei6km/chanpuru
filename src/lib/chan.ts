@@ -112,5 +112,5 @@ export class Chan<T> {
   }
 }
 
-export type CahnSend<T> = Chan<T>['send']
-export type CahnRecv<T> = AsyncGenerator<T, void, void>
+export type ChanSend<T> = Chan<T>['send']
+export type ChanRecv<T> = AsyncGenerator<T, void, void>
