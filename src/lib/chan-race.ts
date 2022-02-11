@@ -13,7 +13,7 @@ export class ChanRace<T> extends ChanG<Promise<T>> {
     this.sendFunc = bufSize === 0 ? this._sendWithoutBuf : this._sendWithBuf
   }
   private async _sendWithoutBuf(p: Promise<T>): Promise<void> {
-    while (true) {
+    while (!this.generatorClosed) {
       if (this.buf.length === 0) {
         this.buf.push(p)
         this.bufRelease()
@@ -27,7 +27,7 @@ export class ChanRace<T> extends ChanG<Promise<T>> {
     }
   }
   protected async _sendWithBuf(p: Promise<T>): Promise<void> {
-    while (true) {
+    while (!this.generatorClosed) {
       if (this.buf.length < this.bufSize) {
         // バッファーが存在することになっているので自身の処理を待たない.
         // よって reject されてもここでは検出できない.
@@ -106,6 +106,7 @@ export class ChanRace<T> extends ChanG<Promise<T>> {
         }
       }
     } finally {
+      this.generatorClosed = true
       this.clean()
     }
   }
