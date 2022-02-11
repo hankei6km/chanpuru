@@ -15,29 +15,29 @@ const s: Src[] = [
   ['k', 'f', 700]
 ]
 
-const c = new Chan<Promise<string>>(3)
+const c = new Chan<() => Promise<string>>(3)
 
 ;(async () => {
   let err: any
   for (let idx = 0; err === undefined && idx < s.length; idx++) {
-    print(`send start ${idx + 1}`)
+    // print(`send start ${idx + 1}`)
     const p = genPromose(s[idx], print)
     // chain の末尾になるようにする.
-    // ここでの戻り値を send すると chain の先頭になるのでバッファーの中で reject されない.
+    // ここでの戻り値を send すると chain の先頭になるので receiver 側で reject されない.
     // (このサンプルだと send しようとしても型があわないからそもそもできない)
     p.catch((r) => {
       console.log(`handle reject(send loop) ${r}`)
       err = r
     })
-    await c.send(p)
-    print(`send end ${idx + 1}`)
+    await c.send(() => p)
+    // print(`send end ${idx + 1}`)
   }
   c.close()
 })()
 ;(async () => {
   try {
     for await (let i of c.receiver()) {
-      print(`recv value: ${i}`)
+      print(`recv value: ${await i()}`)
     }
   } catch (r) {
     console.log(`handle reject(recv loop) ${r}`)

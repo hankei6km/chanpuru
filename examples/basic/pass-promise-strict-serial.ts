@@ -15,12 +15,13 @@ const s: Src[] = [
   ['k', 'f', 700]
 ]
 
-const c = new Chan<Promise<string>>()
+const c = new Chan<() => Promise<string>>()
 
 ;(async () => {
   for (let idx = 0; idx < s.length; idx++) {
     // print(`send start ${idx + 1}`)
-    const p = genPromose(s[idx], print)
+    // 受信側で p を実行するまで Promise の cb は実行されないので直列処理になる.
+    const p = () => genPromose(s[idx], print)
     await c.send(p)
     // print(`send end ${idx + 1}`)
   }
@@ -28,6 +29,6 @@ const c = new Chan<Promise<string>>()
 })()
 ;(async () => {
   for await (let i of c.receiver()) {
-    print(`recv value: ${i}`)
+    print(`recv value: ${await i()}`)
   }
 })()

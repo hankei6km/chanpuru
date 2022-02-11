@@ -12,11 +12,11 @@
 
 Promise を送信するが、受信される値は await 済みのものになる.
 
-完全な直列に比べると若干短縮される。
+内部的なバッファーで実際には並列に処理される。厳密な直列処理は `pass-promise-strict-serial.ts` で記述。
 
 ### pass-promise-parallel.ts
 
-上記のバッファーありバージョン。バッファーの数だけ短縮される。
+上記のバッファーありバージョン。バッファーの数により並列処理数が増える。
 
 送信と受信で順番は変動しないが、レスポンスが長い Promise があると引っ張られる.
 
@@ -29,6 +29,10 @@ Promise を送信するが、受信される値は await 済みのものにな�
 ### pass-wrapped-promise.ts
 
 上記のバッファーありバージョン。
+
+### pass-promise-strict-serial.ts
+
+上記の変形で厳密な直列処理を行う(Promise の cb が同時に実行されない)。
 
 ### handle-reject-in-generator
 

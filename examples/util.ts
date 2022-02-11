@@ -1,3 +1,21 @@
+export type Src = [string, 'f' | 'r', number]
+
+export const genPromose: (
+  s: Src,
+  printer: (msg: string) => void
+) => Promise<string> = ([value, flag, timeout], printer) =>
+  new Promise<string>((resolve, reject) => {
+    printer(`promise start ${value}`)
+    setTimeout(() => {
+      if (flag === 'f') {
+        resolve(value)
+      } else {
+        reject(`rejected: ${value}`)
+      }
+      printer(`promise end ${value}`)
+    }, timeout)
+  })
+
 export function log() {
   const saveNow = Date.now()
   return {
