@@ -600,32 +600,26 @@ describe('ChanRace()', () => {
   it('should close without reject receiver side', async () => {
     const len = 500
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
-    const pr = genPromiseResolve(s)
     const c = new ChanRace<string>(0)
+    const dummyProcResolve = (r: () => void) => setTimeout(() => r(), 100)
+    const dummyProcReject = (r: (reason: any) => void) =>
+      setTimeout(() => r('rejected'), 10)
     let cnt = 0
     let senderError: Error | undefined = undefined
     let receiverError: Error | undefined = undefined
     ;(async () => {
-      for (let i = 0; i < pr.length; i++) {
-        pr[i][0].catch((reason) => {
-          senderError = reason
-          return reason
+      for (let i = 0; senderError === undefined && i < s.length; i++) {
+        const p = genPromiseResolve([s[i]])[0]
+        i === 3 ? dummyProcReject(p[2]) : dummyProcResolve(p[1])
+        p[0].catch((r) => {
+          senderError = r
+          //return Promise.reject(r)
         })
-        if (!senderError) {
-          await c.send(pr[i][0])
-        }
+        await c.send(p[0])
         cnt++
       }
       c.close()
     })()
-    pr[0][1]()
-    pr[1][1]()
-    pr[2][1]()
-    pr[3][2]('rejected')
-    pr[4][1]()
-    pr[5][1]()
-    pr[6][1]()
-    pr[7][1]()
     const res: string[] = []
     try {
       for await (let v of c.receiver()) {
@@ -652,32 +646,26 @@ describe('ChanRace()', () => {
   it('should close without reject receiver side(parallel)', async () => {
     const len = 500
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
-    const pr = genPromiseResolve(s)
     const c = new ChanRace<string>(3)
+    const dummyProcResolve = (r: () => void) => setTimeout(() => r(), 100)
+    const dummyProcReject = (r: (reason: any) => void) =>
+      setTimeout(() => r('rejected'), 10)
     let cnt = 0
     let senderError: Error | undefined = undefined
     let receiverError: Error | undefined = undefined
     ;(async () => {
-      for (let i = 0; i < pr.length; i++) {
-        pr[i][0].catch((reason) => {
-          senderError = reason
-          return reason
+      for (let i = 0; senderError === undefined && i < s.length; i++) {
+        const p = genPromiseResolve([s[i]])[0]
+        i === 3 ? dummyProcReject(p[2]) : dummyProcResolve(p[1])
+        p[0].catch((r) => {
+          senderError = r
+          //return Promise.reject(r)
         })
-        if (!senderError) {
-          await c.send(pr[i][0])
-        }
+        await c.send(p[0])
         cnt++
       }
       c.close()
     })()
-    pr[0][1]()
-    pr[1][1]()
-    pr[2][1]()
-    pr[3][2]('rejected')
-    pr[4][1]()
-    pr[5][1]()
-    pr[6][1]()
-    pr[7][1]()
     const res: string[] = []
     try {
       for await (let v of c.receiver()) {
@@ -704,32 +692,25 @@ describe('ChanRace()', () => {
   it('should reject in receiver side', async () => {
     const len = 500
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
-    const pr = genPromiseResolve(s)
     const c = new ChanRace<string>(0, { rejectInReceiver: true })
+    const dummyProcResolve = (r: () => void) => setTimeout(() => r(), 100)
+    const dummyProcReject = (r: (reason: any) => void) =>
+      setTimeout(() => r('rejected'), 10)
     let cnt = 0
     let senderError: Error | undefined = undefined
     let receiverError: Error | undefined = undefined
     ;(async () => {
-      for (let i = 0; i < pr.length; i++) {
-        pr[i][0].catch((reason) => {
-          senderError = reason
-          return reason
+      for (let i = 0; senderError === undefined && i < s.length; i++) {
+        const p = genPromiseResolve([s[i]])[0]
+        i === 3 ? dummyProcReject(p[2]) : dummyProcResolve(p[1])
+        p[0].catch((r) => {
+          senderError = r
         })
-        if (!senderError) {
-          await c.send(pr[i][0])
-        }
+        await c.send(p[0])
         cnt++
       }
       c.close()
     })()
-    pr[0][1]()
-    pr[1][1]()
-    pr[2][1]()
-    pr[3][2]('rejected')
-    pr[4][1]()
-    pr[5][1]()
-    pr[6][1]()
-    pr[7][1]()
     const res: string[] = []
     try {
       for await (let v of c.receiver()) {
@@ -739,7 +720,8 @@ describe('ChanRace()', () => {
       receiverError = e
     }
     res.sort(sortFunc)
-    expect(res).toEqual(s.slice(0, 3)) // バッファーが無ければ reject されたところで send 側が止まる.
+    // for await...of で generator 側の finally が実行されるので reject の位置で止まる
+    expect(res).toEqual(s.slice(0, 3))
     expect(senderError).toEqual('rejected')
     expect(receiverError).toEqual('rejected')
 
@@ -758,30 +740,24 @@ describe('ChanRace()', () => {
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
     const pr = genPromiseResolve(s)
     const c = new ChanRace<string>(3, { rejectInReceiver: true })
+    const dummyProcResolve = (r: () => void) => setTimeout(() => r(), 100)
+    const dummyProcReject = (r: (reason: any) => void) =>
+      setTimeout(() => r('rejected'), 10)
     let cnt = 0
     let senderError: Error | undefined = undefined
     let receiverError: Error | undefined = undefined
     ;(async () => {
-      for (let i = 0; i < pr.length; i++) {
-        pr[i][0].catch((reason) => {
-          senderError = reason
-          return reason
+      for (let i = 0; senderError === undefined && i < s.length; i++) {
+        const p = genPromiseResolve([s[i]])[0]
+        i === 3 ? dummyProcReject(p[2]) : dummyProcResolve(p[1])
+        p[0].catch((r) => {
+          senderError = r
         })
-        if (!senderError) {
-          await c.send(pr[i][0])
-        }
+        await c.send(p[0])
         cnt++
       }
       c.close()
     })()
-    pr[0][1]()
-    pr[1][1]()
-    pr[2][1]()
-    pr[3][2]('rejected')
-    pr[4][1]()
-    pr[5][1]()
-    pr[6][1]()
-    pr[7][1]()
     const res: string[] = []
     try {
       for await (let v of c.receiver()) {
@@ -791,7 +767,10 @@ describe('ChanRace()', () => {
       receiverError = e
     }
     res.sort(sortFunc)
-    expect(res).toEqual(s.slice(0, 3))
+    // for await...of で generator 側の finally が実行されるので
+    // バッファーがある場合は最初に抜けてきた reject の位置で止まる
+    // (今回のテストだと 4 番目の位置の reject がその前の 2 つを追い越す)
+    expect(res).toEqual(s.slice(0, 1))
     expect(senderError).toEqual('rejected')
     expect(receiverError).toEqual('rejected')
 
@@ -809,22 +788,20 @@ describe('ChanRace()', () => {
     const s = ['0', '1', '2', '3', '4', '5', '6', '7']
     const pr = genPromiseResolve(s)
     const c = new ChanRace<string>(0)
+    const dummyProcResolve = (r: () => void) => setTimeout(() => r(), 100)
+    const dummyProcReject = (r: (reason: any) => void) =>
+      setTimeout(() => r('rejected'), 10)
     let cnt = 0
     ;(async () => {
-      for (let i = 0; i < pr.length; i++) {
-        await c.send(pr[i][0])
+      for (let i = 0; i < s.length; i++) {
+        const p = genPromiseResolve([s[i]])[0]
+        i === 3 ? dummyProcReject(p[2]) : dummyProcResolve(p[1])
+        p[0].catch((r) => {})
+        await c.send(p[0])
         cnt++
       }
       c.close()
     })()
-    pr[0][1]()
-    pr[1][1]()
-    pr[2][1]()
-    pr[3][2]('rejected')
-    pr[4][1]()
-    pr[5][1]()
-    pr[6][1]()
-    pr[7][1]()
     const res: string[] = []
     for await (let v of c.receiver()) {
       res.push(v)
@@ -846,23 +823,20 @@ describe('ChanRace()', () => {
     const s = ['0', '1', '2', '3', '4', '5', '6', '7']
     const pr = genPromiseResolve(s)
     const c = new ChanRace<string>(3)
+    const dummyProcResolve = (r: () => void) => setTimeout(() => r(), 100)
+    const dummyProcReject = (r: (reason: any) => void) =>
+      setTimeout(() => r('rejected'), 10)
     let cnt = 0
     ;(async () => {
-      for (let i = 0; i < pr.length; i++) {
-        //pr[i][0].catch((r) => console.log(r))
-        await c.send(pr[i][0])
+      for (let i = 0; i < s.length; i++) {
+        const p = genPromiseResolve([s[i]])[0]
+        i === 3 ? dummyProcReject(p[2]) : dummyProcResolve(p[1])
+        p[0].catch((r) => {})
+        await c.send(p[0])
         cnt++
       }
       c.close()
     })()
-    pr[0][1]()
-    pr[1][1]()
-    pr[2][1]()
-    pr[3][2]('rejected')
-    pr[4][1]()
-    pr[5][1]()
-    pr[6][1]()
-    pr[7][1]()
     const res: string[] = []
     for await (let v of c.receiver()) {
       res.push(v)
@@ -884,22 +858,20 @@ describe('ChanRace()', () => {
     const s = ['0', '1', '2', '3', '4', '5', '6', '7']
     const pr = genPromiseResolve(s)
     const c = new ChanRace<string>(0)
+    const dummyProcResolve = (r: () => void) => setTimeout(() => r(), 100)
+    const dummyProcReject = (r: (reason: any) => void) =>
+      setTimeout(() => r('rejected'), 10)
     let cnt = 0
     ;(async () => {
-      for (let i = 0; i < pr.length; i++) {
-        await c.send(pr[i][0])
+      for (let i = 0; i < s.length; i++) {
+        const p = genPromiseResolve([s[i]])[0]
+        i === 3 || i === 7 ? dummyProcReject(p[2]) : dummyProcResolve(p[1])
+        p[0].catch((r) => {})
+        await c.send(p[0])
         cnt++
       }
       c.close()
     })()
-    pr[0][1]()
-    pr[1][1]()
-    pr[2][1]()
-    pr[3][2]('rejected')
-    pr[4][1]()
-    pr[5][1]()
-    pr[6][1]()
-    pr[7][2]('rejected')
     const res: string[] = []
     for await (let v of c.receiver()) {
       res.push(v)
@@ -921,23 +893,20 @@ describe('ChanRace()', () => {
     const s = ['0', '1', '2', '3', '4', '5', '6', '7']
     const pr = genPromiseResolve(s)
     const c = new ChanRace<string>(3)
+    const dummyProcResolve = (r: () => void) => setTimeout(() => r(), 100)
+    const dummyProcReject = (r: (reason: any) => void) =>
+      setTimeout(() => r('rejected'), 10)
     let cnt = 0
     ;(async () => {
-      for (let i = 0; i < pr.length; i++) {
-        //pr[i][0].catch((r) => console.log(r))
-        await c.send(pr[i][0])
+      for (let i = 0; i < s.length; i++) {
+        const p = genPromiseResolve([s[i]])[0]
+        i === 3 || i === 7 ? dummyProcReject(p[2]) : dummyProcResolve(p[1])
+        p[0].catch((r) => {})
+        await c.send(p[0])
         cnt++
       }
       c.close()
     })()
-    pr[0][1]()
-    pr[1][1]()
-    pr[2][1]()
-    pr[3][2]('rejected')
-    pr[4][1]()
-    pr[5][1]()
-    pr[6][1]()
-    pr[7][2]('rejected')
     const res: string[] = []
     for await (let v of c.receiver()) {
       res.push(v)
