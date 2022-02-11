@@ -14,6 +14,7 @@ export class Chan<T> {
   protected valuePromise!: Promise<void>
   protected valueResolve!: (value: void) => void
 
+  protected generatorClosed: boolean = false
   protected closed: boolean = false
 
   constructor(bufSize: number = 0, opts: ChanOpts = {}) {
@@ -43,7 +44,7 @@ export class Chan<T> {
     this.valueResolve()
   }
   protected async _sendWithBuf(p: T): Promise<void> {
-    while (true) {
+    while (!this.generatorClosed) {
       if (this.buf.length < this.bufSize) {
         this.buf.push(p)
         this.bufRelease()
@@ -56,6 +57,10 @@ export class Chan<T> {
     if (this.closed) {
       throw new Error('panic: send on closed channel')
     }
+    // TOOD: generatorClosed でループを抜けたかのステータスを返すか検討.
+    // rejectInReceiver が有効だとバッファーに乗っているものでもドロップするので、
+    // (yeield で reject を for await...of などに渡すと finally が実行されるので)
+    // ここのステータスだけわかってもあまり意味はないか.
     return this.sendFunc(p)
   }
   private async _receiver(): Promise<{ value: T | undefined; done: boolean }> {
@@ -93,6 +98,7 @@ export class Chan<T> {
         }
       }
     } finally {
+      this.generatorClosed = true
       this.clean()
     }
   }
