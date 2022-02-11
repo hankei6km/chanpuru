@@ -87,22 +87,26 @@ export class ChanRace<T> extends ChanG<Promise<T>> {
         throw r
       }
     }
-    this.clean()
     return { value: undefined, done: true }
   }
   async *receiver(): AsyncGenerator<T, void, void> {
-    while (true) {
-      try {
-        const i = await this._receiverRace()
-        if (i.done) {
-          return
-        }
-        yield i.value as any
-      } catch (e) {
-        if (this.opts.rejectInReceiver) {
-          yield Promise.reject(e)
+    try {
+      while (true) {
+        try {
+          const i = await this._receiverRace()
+          if (i.done) {
+            return
+          }
+          yield i.value as any
+        } catch (e) {
+          if (this.opts.rejectInReceiver) {
+            // value が Promise だった場合、receiver 側の for await...of などに reject を伝播させる.
+            yield Promise.reject(e)
+          }
         }
       }
+    } finally {
+      this.clean()
     }
   }
 }

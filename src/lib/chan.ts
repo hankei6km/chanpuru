@@ -74,24 +74,26 @@ export class Chan<T> {
       this.valueReset()
       return { value: v, done: false }
     }
-    this.clean()
     return { value: undefined, done: true }
   }
   async *receiver(): AsyncGenerator<T, void, void> {
-    while (true) {
-      try {
-        const i = await this._receiver()
-        if (i.done) {
-          return
-        }
-        yield i.value as any
-      } catch (r) {
-        // T が Promise のときは yield で待つようなので catch する.
-        if (this.opts.rejectInReceiver) {
-          this.clean() // ここで Promise の処理入れたくないのだが.
-          yield Promise.reject(r)
+    try {
+      while (true) {
+        try {
+          const i = await this._receiver()
+          if (i.done) {
+            return
+          }
+          yield i.value as any
+        } catch (e) {
+          if (this.opts.rejectInReceiver) {
+            // value が Promise だった場合、receiver 側の for await...of などに reject を伝播させる.
+            yield Promise.reject(e)
+          }
         }
       }
+    } finally {
+      this.clean()
     }
   }
   protected clean() {
