@@ -1,4 +1,4 @@
-import { Chan } from '../../src/index.js'
+import { ChanRace } from '../../src/index.js'
 import { Src, log, genPromose } from '../util.js'
 
 const { print } = log()
@@ -16,7 +16,7 @@ const s: Src[] = [
   ['j', 'f', 300]
 ]
 
-const c = new Chan<Promise<string>>(2)
+const c = new ChanRace<string>(3)
 
 ;(async () => {
   for (let idx = 0; idx < s.length; idx++) {
@@ -27,8 +27,18 @@ const c = new Chan<Promise<string>>(2)
   }
   c.close()
 })()
-;(async () => {
-  for await (let i of c.receiver()) {
-    print(`recv value: ${i}`)
-  }
-})()
+const r = c.receiver()
+Promise.all([
+  (async () => {
+    for await (let i of r) {
+      print(`recv1 value: ${i}`)
+    }
+    print('done 1')
+  })(),
+  (async () => {
+    for await (let i of r) {
+      print(`recv2 value: ${i}`)
+    }
+    print('done 2')
+  })()
+])
