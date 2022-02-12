@@ -125,4 +125,4 @@ export class Chan<T> {
 }
 
 export type ChanSend<T> = Chan<T>['send']
-export type ChanRecv<T> = AsyncGenerator<Awaited<T>, void, void>
+export type ChanRecv<T> = ReturnType<Chan<T>['receiver']>
