@@ -63,7 +63,7 @@ export class Chan<T> {
     // ここのステータスだけわかってもあまり意味はないか.
     return this.sendFunc(p)
   }
-  private async _receiver(): Promise<{ value: T | undefined; done: boolean }> {
+  private async gate(): Promise<{ done: boolean }> {
     // バッファーが埋まっていない場合は、send されるまで待つ.
     // close されていれば素通し.
     while (this.buf.length < this.bufSize && !this.closed) {
@@ -73,28 +73,29 @@ export class Chan<T> {
     // バッファーを消費していたら終了.
     // 通常は消費しない、close されていれば何度か呼びだされるうちに消費される.
     if (this.buf.length > 0) {
-      const v = this.buf.shift()
-      // send 側へ空きができたことを通知.
-      this.valueRelease()
-      this.valueReset()
-      return { value: v, done: false }
+      return { done: false }
     }
-    return { value: undefined, done: true }
+    return { done: true }
   }
   async *receiver(): AsyncGenerator<T, void, void> {
     try {
       while (true) {
         try {
-          const i = await this._receiver()
+          const i = await this.gate()
           if (i.done) {
             return
           }
-          yield i.value as any
+          yield this.buf[0]
         } catch (e) {
           if (this.opts.rejectInReceiver) {
             // value が Promise だった場合、receiver 側の for await...of などに reject を伝播させる.
             yield Promise.reject(e)
           }
+        } finally {
+          this.buf.shift()
+          // send 側へ空きができたことを通知.
+          this.valueRelease()
+          this.valueReset()
         }
       }
     } finally {
