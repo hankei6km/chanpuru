@@ -88,7 +88,7 @@ export class Chan<T> {
     }
     return { done: true }
   }
-  async *receiver(): AsyncGenerator<T, void, void> {
+  async *receiver(): AsyncGenerator<Awaited<T>, void, void> {
     try {
       while (true) {
         try {
@@ -125,4 +125,4 @@ export class Chan<T> {
 }
 
 export type ChanSend<T> = Chan<T>['send']
-export type ChanRecv<T> = AsyncGenerator<T, void, void>
+export type ChanRecv<T> = AsyncGenerator<Awaited<T>, void, void>

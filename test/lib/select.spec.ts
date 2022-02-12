@@ -61,9 +61,9 @@ describe('select()', () => {
       }
       c1.close()
     })()
-    const res: [string, IteratorResult<Promise<string>, void>][] = []
+    const res: [string, IteratorResult<Awaited<string>, void>][] = []
     jest.advanceTimersByTime(1000)
-    for await (let s of select<Promise<string>>({ one: i1 })) {
+    for await (let s of select<Awaited<string>>({ one: i1 })) {
       res.push(s)
       jest.advanceTimersByTime(2000)
     }
@@ -95,9 +95,9 @@ describe('select()', () => {
       }
       c2.close()
     })()
-    const res: [string, IteratorResult<Promise<string>, void>][] = []
+    const res: [string, IteratorResult<Awaited<string>, void>][] = []
     jest.advanceTimersByTime(1000)
-    for await (let s of select<Promise<string>>({ one: i1, two: i2 })) {
+    for await (let s of select<Awaited<string>>({ one: i1, two: i2 })) {
       res.push(s)
       jest.advanceTimersByTime(1000)
     }
@@ -132,10 +132,10 @@ describe('select()', () => {
       }
       c1.close()
     })()
-    const res: [string, IteratorResult<Promise<string>, void>][] = []
+    const res: [string, IteratorResult<Awaited<string>, void>][] = []
     jest.advanceTimersByTime(1000)
     try {
-      for await (let s of select<Promise<string>>({ one: i1 })) {
+      for await (let s of select<Awaited<string>>({ one: i1 })) {
         res.push(s)
         jest.advanceTimersByTime(1000)
       }
@@ -186,10 +186,10 @@ describe('select()', () => {
       }
       c2.close()
     })()
-    const res: [string, IteratorResult<Promise<string>, void>][] = []
+    const res: [string, IteratorResult<Awaited<string>, void>][] = []
     jest.advanceTimersByTime(1000)
     try {
-      for await (let s of select<Promise<string>>({ one: i1, two: i2 })) {
+      for await (let s of select<Awaited<string>>({ one: i1, two: i2 })) {
         res.push(s)
         jest.advanceTimersByTime(1000)
       }
@@ -227,10 +227,10 @@ describe('select()', () => {
       }
       c1.close()
     })()
-    const res: [string, IteratorResult<Promise<string>, void>][] = []
+    const res: [string, IteratorResult<Awaited<string>, void>][] = []
     jest.advanceTimersByTime(1000)
     try {
-      for await (let s of select<Promise<string>>({ one: i1 })) {
+      for await (let s of select<Awaited<string>>({ one: i1 })) {
         res.push(s)
         jest.advanceTimersByTime(1000)
       }
