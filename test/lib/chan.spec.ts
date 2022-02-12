@@ -551,7 +551,7 @@ describe('Chan()', () => {
     }
     // ['0', '1', '2', '3' 以外] で undefined を含まないことを確認.
     // バッファーサイズなどによって長さは変動する.
-    expect(res.slice(0, 4)).toEqual(['0', '1', '2', '4'])
+    expect(res).toEqual(['0', '1', '2'])
     expect(res).not.toContain(undefined)
     expect(senderError).toEqual('rejected')
     expect(receiverError).toBeUndefined()
@@ -598,7 +598,7 @@ describe('Chan()', () => {
     }
     // ['0', '1', '2', '3' 以外] であることだけを確認.
     // バッファーサイズなどによって長さは変動する.
-    expect(res.slice(0, 4)).toEqual(['0', '1', '2', '4'])
+    expect(res).toEqual(['0', '1', '2'])
     expect(senderError).toEqual('rejected')
     expect(receiverError).toBeUndefined()
 
