@@ -22,7 +22,7 @@ export class Chan<T> {
       this.opts.rejectInReceiver = opts.rejectInReceiver
     }
     this.bufSize = bufSize === 0 ? 1 : bufSize // バッファーサイズ 0 のときも内部的にはバッファーは必要.
-    this.sendFunc = this._sendWithBuf
+    this.sendFunc = bufSize === 0 ? this._sendWithoutBuf : this._sendWithBuf
     this.buf = []
     this.bufReset()
     this.valueReset()
@@ -42,6 +42,17 @@ export class Chan<T> {
   }
   protected valueRelease() {
     this.valueResolve()
+  }
+  protected async _sendWithoutBuf(p: T): Promise<void> {
+    while (!this.generatorClosed) {
+      if (this.buf.length < this.bufSize) {
+        this.buf.push(p)
+        this.bufRelease()
+        await this.valuePromise
+        return
+      }
+      await this.valuePromise
+    }
   }
   protected async _sendWithBuf(p: T): Promise<void> {
     while (!this.generatorClosed) {

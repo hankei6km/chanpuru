@@ -419,23 +419,28 @@ describe('Chan()', () => {
   it('should block writing if the buffer is not allocated', async () => {
     const s = ['0', '1']
     const c = new Chan<string>()
-    let done = [false, false]
+    let step = 0
+    const pocket: number[] = []
     ;(async () => {
-      await c.send(s[0])
-      done[0] = true
-      await c.send(s[1]) // バッファーがないのでブロックされる.
-      done[1] = true
+      pocket.push(step)
+      await c.send(s[0]) // バッファーがないので受信されるまでブロックされる.
+      pocket.push(step)
+      await c.send(s[1])
+      pocket.push(step)
       c.close()
     })()
-    const i = c.receiver()
-    await (async () => {
+    await new Promise<void>(async (resolve) => {
+      const i = c.receiver()
       await i.next()
-    })()
-    expect(done[0]).toBeTruthy()
-    expect(done[1]).toBeFalsy()
+      step++
+      await i.next()
+      step++
+      await i.next()
+      step++
+      resolve()
+    })
 
-    await i.next()
-    await i.next()
+    expect(pocket).toEqual([0, 1, 2])
 
     expect(mockBufReset).toBeCalled()
     expect(
@@ -449,24 +454,29 @@ describe('Chan()', () => {
 
   it('should returns immediately if the buffer is not full(short)', async () => {
     const s = ['0', '1']
-    const c = new Chan<string>(2)
-    let done = [false, false]
+    const c = new Chan<string>(1)
+    let step = 0
+    const pocket: number[] = []
     ;(async () => {
-      await c.send(s[0])
-      done[0] = true
-      await c.send(s[1]) // バッファーが空いているのでブロックされない.
-      done[1] = true
+      pocket.push(step)
+      await c.send(s[0]) // バッファーがあるのでブロックされない.
+      pocket.push(step) // よって、受信前に到達するので step = 0 の状態.
+      await c.send(s[1])
+      pocket.push(step)
       c.close()
     })()
-    const i = c.receiver()
-    await (async () => {
+    await new Promise<void>(async (resolve) => {
+      const i = c.receiver()
       await i.next()
-    })()
-    expect(done[0]).toBeTruthy()
-    expect(done[1]).toBeTruthy()
+      step++
+      await i.next()
+      step++
+      await i.next()
+      step++
+      resolve()
+    })
 
-    await i.next()
-    await i.next()
+    expect(pocket).toEqual([0, 0, 1])
 
     expect(mockBufReset).toBeCalled()
     expect(
