@@ -12,7 +12,7 @@ export class ChanRace<T> extends ChanG<Promise<T>> {
     this.bufSize = bufSize === 0 ? 1 : bufSize // バッファーサイズ 0 のときも内部的にはバッファーは必要.
     this.sendFunc = bufSize === 0 ? this._sendWithoutBuf : this._sendWithBuf
   }
-  private async _sendWithoutBuf(p: Promise<T>): Promise<void> {
+  protected async _sendWithoutBuf(p: Promise<T>): Promise<void> {
     while (!this.generatorClosed) {
       if (this.buf.length === 0) {
         this.buf.push(p)
