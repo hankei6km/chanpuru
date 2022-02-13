@@ -367,8 +367,11 @@ describe('payloads()', () => {
 
     const rec: string[] = []
     for await (let [value, payload] of recv) {
-      const v = await value
-      rec.push(`${v}${payload}`)
+      try {
+        // reject が抜けてくる(keepOrder 側の挙動にあわせている).
+        const v = await value
+        rec.push(`${v}${payload}`)
+      } catch {}
     }
     expect(rec).toEqual(['aA', 'cC', 'bB', 'eE'])
     expect(err).toEqual('d')

@@ -67,7 +67,9 @@ async function payloadOvertake<T, TPayload>(
   for await (let i of recv) {
     try {
       await send([await i[0](), i[1]])
-    } catch {}
+    } catch (r: any) {
+      await send([Promise.reject(r) as any, i[1]])
+    }
   }
 }
 
