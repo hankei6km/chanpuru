@@ -603,4 +603,86 @@ describe('payloads()', () => {
     expect(recResp).toEqual(['A', 'B', 'C', 'D', 'E', 'F'])
     expect(r.record()).toEqual(3)
   })
+
+  it('should exit loop by response', async () => {
+    jest.useFakeTimers()
+    let timerUpdate = true
+    ;(async () => {
+      while (timerUpdate) {
+        jest.advanceTimersByTime(5)
+        await new Promise<void>((resolve) => resolve())
+      }
+    })()
+    const r = new RecordMax()
+
+    const ch = new Chan<[() => Promise<string>, () => void]>(0)
+
+    let abort: boolean = false
+    ;(async () => {
+      for (let s of src()) {
+        await ch.send([genPromiseCB(r, s), () => (abort = true)])
+        if (abort) {
+          break
+        }
+      }
+      ch.close()
+    })()
+
+    const recv = payloads(3, ch.receiver())
+
+    const rec: string[] = []
+    for await (let [value, abort] of recv) {
+      if (value === 'c') {
+        abort()
+      } else {
+        rec.push(value)
+      }
+    }
+    timerUpdate = false
+
+    expect(abort).toBeTruthy()
+    expect(rec).toEqual(['a', 'd', 'b'])
+    expect(r.record()).toEqual(3)
+  })
+
+  it('should exit loop by response(keep order)', async () => {
+    jest.useFakeTimers()
+    let timerUpdate = true
+    ;(async () => {
+      while (timerUpdate) {
+        jest.advanceTimersByTime(5)
+        await new Promise<void>((resolve) => resolve())
+      }
+    })()
+    const r = new RecordMax()
+
+    const ch = new Chan<[() => Promise<string>, () => void]>(0)
+
+    let abort: boolean = false
+    ;(async () => {
+      for (let s of src()) {
+        await ch.send([genPromiseCB(r, s), () => (abort = true)])
+        if (abort) {
+          break
+        }
+      }
+      ch.close()
+    })()
+
+    const recv = payloads(3, ch.receiver(), { keepOrder: true })
+
+    const rec: string[] = []
+    for await (let [value, abort] of recv) {
+      if (value === 'c') {
+        abort()
+      } else {
+        rec.push(value)
+      }
+    }
+    timerUpdate = false
+
+    expect(abort).toBeTruthy()
+    expect(rec).toEqual(['a', 'b', 'd', 'e'])
+    expect(r.record()).toEqual(3)
+  })
 })
