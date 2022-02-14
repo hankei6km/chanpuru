@@ -41,6 +41,10 @@ const genPromise: (max: RecordMax, s: Src) => Promise<string> = (
     }, timeout)
   )
 }
+const genPromiseCB = (max: RecordMax, s: Src) => {
+  return () => genPromise(max, s)
+}
+
 const src: () => Src[] = () => [
   ['a', 'f', 200],
   ['b', 'f', 400],
@@ -77,7 +81,7 @@ describe('workers()', () => {
     const c = new Chan<() => Promise<string>>(0)
     ;(async () => {
       for (let s of src()) {
-        await c.send(() => genPromise(r, s))
+        await c.send(genPromiseCB(r, s))
       }
       c.close()
     })()
@@ -108,7 +112,7 @@ describe('workers()', () => {
     const c = new Chan<() => Promise<string>>(0)
     ;(async () => {
       for (let s of src()) {
-        await c.send(() => genPromise(r, s))
+        await c.send(genPromiseCB(r, s))
       }
       c.close()
     })()
@@ -139,7 +143,7 @@ describe('workers()', () => {
     const c = new Chan<() => Promise<string>>(0)
     ;(async () => {
       for (let s of src()) {
-        await c.send(() => genPromise(r, s))
+        await c.send(genPromiseCB(r, s))
       }
       c.close()
     })()
@@ -170,7 +174,7 @@ describe('workers()', () => {
     const c = new Chan<() => Promise<string>>(0)
     ;(async () => {
       for (let s of src()) {
-        await c.send(() => genPromise(r, s))
+        await c.send(genPromiseCB(r, s))
       }
       c.close()
     })()
@@ -201,7 +205,7 @@ describe('workers()', () => {
     const c = new Chan<() => Promise<string>>(0)
     ;(async () => {
       for (let s of src()) {
-        await c.send(() => genPromise(r, s))
+        await c.send(genPromiseCB(r, s))
       }
       c.close()
     })()
@@ -225,7 +229,7 @@ describe('workers()', () => {
     const c = new Chan<() => Promise<string>>(0)
     ;(async () => {
       for (let s of l) {
-        await c.send(() => genPromise(r, [s, 'f', s.endsWith('0') ? 10 : 0]))
+        await c.send(genPromiseCB(r, [s, 'f', s.endsWith('0') ? 10 : 0]))
       }
       c.close()
     })()
@@ -249,7 +253,7 @@ describe('workers()', () => {
     const c = new Chan<() => Promise<string>>(0)
     ;(async () => {
       for (let s of l) {
-        await c.send(() => genPromise(r, [s, 'f', s.endsWith('0') ? 10 : 0]))
+        await c.send(genPromiseCB(r, [s, 'f', s.endsWith('0') ? 10 : 0]))
       }
       c.close()
     })()
@@ -281,13 +285,17 @@ describe('workers()', () => {
     let err: any = undefined
     ;(async () => {
       for (let s of rsrc()) {
-        await c.send(() => {
-          const p = genPromise(r, s)
-          p.catch((r) => {
-            err = r
-          })
-          return p
-        })
+        await c.send(
+          ((r, s) => {
+            return () => {
+              const p = genPromise(r, s)
+              p.catch((r) => {
+                err = r
+              })
+              return p
+            }
+          })(r, s)
+        )
         if (err !== undefined) {
           break
         }
@@ -323,13 +331,17 @@ describe('workers()', () => {
     let err: any = undefined
     ;(async () => {
       for (let s of rsrc()) {
-        await c.send(() => {
-          const p = genPromise(r, s)
-          p.catch((r) => {
-            err = r
-          })
-          return p
-        })
+        await c.send(
+          ((r, s) => {
+            return () => {
+              const p = genPromise(r, s)
+              p.catch((r) => {
+                err = r
+              })
+              return p
+            }
+          })(r, s)
+        )
         if (err !== undefined) {
           break
         }
@@ -368,7 +380,7 @@ describe('payloads()', () => {
     const recResp: string[] = []
     ;(async () => {
       for (let s of src()) {
-        await ch.send([() => genPromise(r, s), s[0].toUpperCase()])
+        await ch.send([genPromiseCB(r, s), s[0].toUpperCase()])
       }
       ch.close()
     })()
@@ -401,7 +413,7 @@ describe('payloads()', () => {
     const recResp: string[] = []
     ;(async () => {
       for (let s of src()) {
-        await ch.send([() => genPromise(r, s), s[0].toUpperCase()])
+        await ch.send([genPromiseCB(r, s), s[0].toUpperCase()])
       }
       ch.close()
     })()
@@ -436,13 +448,15 @@ describe('payloads()', () => {
     ;(async () => {
       for (let s of rsrc()) {
         await ch.send([
-          () => {
-            const p = genPromise(r, s)
-            p.catch((r) => {
-              err = r
-            })
-            return p
-          },
+          ((r, s) => {
+            return () => {
+              const p = genPromise(r, s)
+              p.catch((r) => {
+                err = r
+              })
+              return p
+            }
+          })(r, s),
           s[0].toUpperCase()
         ])
         if (err !== undefined) {
@@ -483,13 +497,15 @@ describe('payloads()', () => {
     ;(async () => {
       for (let s of rsrc()) {
         await ch.send([
-          () => {
-            const p = genPromise(r, s)
-            p.catch((r) => {
-              err = r
-            })
-            return p
-          },
+          ((r, s) => {
+            return () => {
+              const p = genPromise(r, s)
+              p.catch((r) => {
+                err = r
+              })
+              return p
+            }
+          })(r, s),
           s[0].toUpperCase()
         ])
         if (err !== undefined) {
@@ -512,7 +528,7 @@ describe('payloads()', () => {
     expect(r.record()).toEqual(3)
   })
 
-  it('should receive response from promise', async () => {
+  it('should receive response from payload', async () => {
     jest.useFakeTimers()
     let timerUpdate = true
     ;(async () => {
@@ -523,20 +539,14 @@ describe('payloads()', () => {
     })()
     const r = new RecordMax()
 
-    const ch = new Chan<
-      [() => Promise<string>, (resp: string) => Promise<string>]
-    >(0)
+    const ch = new Chan<[() => Promise<string>, (resp: string) => void]>(0)
 
     const recResp: string[] = []
     ;(async () => {
       for (let s of src()) {
         await ch.send([
-          () => genPromise(r, s),
-          (resp: string) =>
-            new Promise<string>((resolve) => resolve(resp)).then((v) => {
-              recResp.push(v)
-              return v
-            })
+          genPromiseCB(r, s),
+          (resp: string) => recResp.push(resp)
         ])
       }
       ch.close()
@@ -556,7 +566,7 @@ describe('payloads()', () => {
     expect(r.record()).toEqual(3)
   })
 
-  it('should receive response from promise(keep order)', async () => {
+  it('should receive response from payload(keep order)', async () => {
     jest.useFakeTimers()
     let timerUpdate = true
     ;(async () => {
@@ -567,20 +577,14 @@ describe('payloads()', () => {
     })()
     const r = new RecordMax()
 
-    const ch = new Chan<
-      [() => Promise<string>, (resp: string) => Promise<string>]
-    >(0)
+    const ch = new Chan<[() => Promise<string>, (resp: string) => void]>(0)
 
     const recResp: string[] = []
     ;(async () => {
       for (let s of src()) {
         await ch.send([
-          () => genPromise(r, s),
-          (resp: string) =>
-            new Promise<string>((resolve) => resolve(resp)).then((v) => {
-              recResp.push(v)
-              return v
-            })
+          genPromiseCB(r, s),
+          (resp: string) => recResp.push(resp)
         ])
       }
       ch.close()
@@ -600,7 +604,7 @@ describe('payloads()', () => {
     expect(r.record()).toEqual(3)
   })
 
-  it('should receive response from channle', async () => {
+  it('should exit loop by response', async () => {
     jest.useFakeTimers()
     let timerUpdate = true
     ;(async () => {
@@ -611,18 +615,15 @@ describe('payloads()', () => {
     })()
     const r = new RecordMax()
 
-    const respCh = new Chan<string>()
-    const ch = new Chan<[() => Promise<string>, typeof respCh['send']]>(0)
+    const ch = new Chan<[() => Promise<string>, () => void]>(0)
 
-    const recResp: string[] = []
+    let abort: boolean = false
     ;(async () => {
-      ;(async () => {
-        for await (let i of respCh.receiver()) {
-          recResp.push(i)
-        }
-      })()
       for (let s of src()) {
-        await ch.send([() => genPromise(r, s), respCh.send])
+        await ch.send([genPromiseCB(r, s), () => (abort = true)])
+        if (abort) {
+          break
+        }
       }
       ch.close()
     })()
@@ -630,23 +631,21 @@ describe('payloads()', () => {
     const recv = payloads(3, ch.receiver())
 
     const rec: string[] = []
-    for await (let [value, errSend] of recv) {
-      rec.push(value)
-      if (value === 'd') {
-        await errSend('D')
+    for await (let [value, abort] of recv) {
+      if (value === 'c') {
+        abort()
+      } else {
+        rec.push(value)
       }
     }
-
-    respCh.close() // respCh のクローズが離れているのは面白くない.
-
     timerUpdate = false
 
-    expect(rec).toEqual(['a', 'c', 'd', 'b', 'f', 'e'])
-    expect(recResp).toEqual(['D'])
+    expect(abort).toBeTruthy()
+    expect(rec).toEqual(['a', 'd', 'b'])
     expect(r.record()).toEqual(3)
   })
 
-  it('should receive response from channle(keep order)', async () => {
+  it('should exit loop by response(keep order)', async () => {
     jest.useFakeTimers()
     let timerUpdate = true
     ;(async () => {
@@ -657,18 +656,15 @@ describe('payloads()', () => {
     })()
     const r = new RecordMax()
 
-    const respCh = new Chan<string>()
-    const ch = new Chan<[() => Promise<string>, typeof respCh['send']]>(0)
+    const ch = new Chan<[() => Promise<string>, () => void]>(0)
 
-    const recResp: string[] = []
+    let abort: boolean = false
     ;(async () => {
-      ;(async () => {
-        for await (let i of respCh.receiver()) {
-          recResp.push(i)
-        }
-      })()
       for (let s of src()) {
-        await ch.send([() => genPromise(r, s), respCh.send])
+        await ch.send([genPromiseCB(r, s), () => (abort = true)])
+        if (abort) {
+          break
+        }
       }
       ch.close()
     })()
@@ -676,19 +672,17 @@ describe('payloads()', () => {
     const recv = payloads(3, ch.receiver(), { keepOrder: true })
 
     const rec: string[] = []
-    for await (let [value, errSend] of recv) {
-      rec.push(value)
-      if (value === 'd') {
-        await errSend('D')
+    for await (let [value, abort] of recv) {
+      if (value === 'c') {
+        abort()
+      } else {
+        rec.push(value)
       }
     }
-
-    respCh.close()
-
     timerUpdate = false
 
-    expect(rec).toEqual(['a', 'b', 'c', 'd', 'e', 'f'])
-    expect(recResp).toEqual(['D'])
+    expect(abort).toBeTruthy()
+    expect(rec).toEqual(['a', 'b', 'd', 'e'])
     expect(r.record()).toEqual(3)
   })
 })
