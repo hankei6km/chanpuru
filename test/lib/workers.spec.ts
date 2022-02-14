@@ -528,7 +528,7 @@ describe('payloads()', () => {
     expect(r.record()).toEqual(3)
   })
 
-  it('should receive response from promise', async () => {
+  it('should receive response from payload', async () => {
     jest.useFakeTimers()
     let timerUpdate = true
     ;(async () => {
@@ -539,20 +539,14 @@ describe('payloads()', () => {
     })()
     const r = new RecordMax()
 
-    const ch = new Chan<
-      [() => Promise<string>, (resp: string) => Promise<string>]
-    >(0)
+    const ch = new Chan<[() => Promise<string>, (resp: string) => void]>(0)
 
     const recResp: string[] = []
     ;(async () => {
       for (let s of src()) {
         await ch.send([
-          () => genPromise(r, s),
-          (resp: string) =>
-            new Promise<string>((resolve) => resolve(resp)).then((v) => {
-              recResp.push(v)
-              return v
-            })
+          genPromiseCB(r, s),
+          (resp: string) => recResp.push(resp)
         ])
       }
       ch.close()
@@ -572,7 +566,7 @@ describe('payloads()', () => {
     expect(r.record()).toEqual(3)
   })
 
-  it('should receive response from promise(keep order)', async () => {
+  it('should receive response from payload(keep order)', async () => {
     jest.useFakeTimers()
     let timerUpdate = true
     ;(async () => {
@@ -583,20 +577,14 @@ describe('payloads()', () => {
     })()
     const r = new RecordMax()
 
-    const ch = new Chan<
-      [() => Promise<string>, (resp: string) => Promise<string>]
-    >(0)
+    const ch = new Chan<[() => Promise<string>, (resp: string) => void]>(0)
 
     const recResp: string[] = []
     ;(async () => {
       for (let s of src()) {
         await ch.send([
-          () => genPromise(r, s),
-          (resp: string) =>
-            new Promise<string>((resolve) => resolve(resp)).then((v) => {
-              recResp.push(v)
-              return v
-            })
+          genPromiseCB(r, s),
+          (resp: string) => recResp.push(resp)
         ])
       }
       ch.close()
@@ -613,98 +601,6 @@ describe('payloads()', () => {
 
     expect(rec).toEqual(['a', 'b', 'c', 'd', 'e', 'f'])
     expect(recResp).toEqual(['A', 'B', 'C', 'D', 'E', 'F'])
-    expect(r.record()).toEqual(3)
-  })
-
-  it('should receive response from channle', async () => {
-    jest.useFakeTimers()
-    let timerUpdate = true
-    ;(async () => {
-      while (timerUpdate) {
-        jest.advanceTimersByTime(5)
-        await new Promise<void>((resolve) => resolve())
-      }
-    })()
-    const r = new RecordMax()
-
-    const respCh = new Chan<string>()
-    const ch = new Chan<[() => Promise<string>, typeof respCh['send']]>(0)
-
-    const recResp: string[] = []
-    ;(async () => {
-      ;(async () => {
-        for await (let i of respCh.receiver()) {
-          recResp.push(i)
-        }
-      })()
-      for (let s of src()) {
-        await ch.send([() => genPromise(r, s), respCh.send])
-      }
-      ch.close()
-    })()
-
-    const recv = payloads(3, ch.receiver())
-
-    const rec: string[] = []
-    for await (let [value, errSend] of recv) {
-      rec.push(value)
-      if (value === 'd') {
-        await errSend('D')
-      }
-    }
-
-    respCh.close() // respCh のクローズが離れているのは面白くない.
-
-    timerUpdate = false
-
-    expect(rec).toEqual(['a', 'c', 'd', 'b', 'f', 'e'])
-    expect(recResp).toEqual(['D'])
-    expect(r.record()).toEqual(3)
-  })
-
-  it('should receive response from channle(keep order)', async () => {
-    jest.useFakeTimers()
-    let timerUpdate = true
-    ;(async () => {
-      while (timerUpdate) {
-        jest.advanceTimersByTime(5)
-        await new Promise<void>((resolve) => resolve())
-      }
-    })()
-    const r = new RecordMax()
-
-    const respCh = new Chan<string>()
-    const ch = new Chan<[() => Promise<string>, typeof respCh['send']]>(0)
-
-    const recResp: string[] = []
-    ;(async () => {
-      ;(async () => {
-        for await (let i of respCh.receiver()) {
-          recResp.push(i)
-        }
-      })()
-      for (let s of src()) {
-        await ch.send([() => genPromise(r, s), respCh.send])
-      }
-      ch.close()
-    })()
-
-    const recv = payloads(3, ch.receiver(), { keepOrder: true })
-
-    const rec: string[] = []
-    for await (let [value, errSend] of recv) {
-      rec.push(value)
-      if (value === 'd') {
-        await errSend('D')
-      }
-    }
-
-    respCh.close()
-
-    timerUpdate = false
-
-    expect(rec).toEqual(['a', 'b', 'c', 'd', 'e', 'f'])
-    expect(recResp).toEqual(['D'])
     expect(r.record()).toEqual(3)
   })
 })
