@@ -41,6 +41,10 @@ const genPromise: (max: RecordMax, s: Src) => Promise<string> = (
     }, timeout)
   )
 }
+const genPromiseCB = (max: RecordMax, s: Src) => {
+  return () => genPromise(max, s)
+}
+
 const src: () => Src[] = () => [
   ['a', 'f', 200],
   ['b', 'f', 400],
@@ -77,7 +81,7 @@ describe('workers()', () => {
     const c = new Chan<() => Promise<string>>(0)
     ;(async () => {
       for (let s of src()) {
-        await c.send(() => genPromise(r, s))
+        await c.send(genPromiseCB(r, s))
       }
       c.close()
     })()
@@ -108,7 +112,7 @@ describe('workers()', () => {
     const c = new Chan<() => Promise<string>>(0)
     ;(async () => {
       for (let s of src()) {
-        await c.send(() => genPromise(r, s))
+        await c.send(genPromiseCB(r, s))
       }
       c.close()
     })()
@@ -139,7 +143,7 @@ describe('workers()', () => {
     const c = new Chan<() => Promise<string>>(0)
     ;(async () => {
       for (let s of src()) {
-        await c.send(() => genPromise(r, s))
+        await c.send(genPromiseCB(r, s))
       }
       c.close()
     })()
@@ -170,7 +174,7 @@ describe('workers()', () => {
     const c = new Chan<() => Promise<string>>(0)
     ;(async () => {
       for (let s of src()) {
-        await c.send(() => genPromise(r, s))
+        await c.send(genPromiseCB(r, s))
       }
       c.close()
     })()
@@ -201,7 +205,7 @@ describe('workers()', () => {
     const c = new Chan<() => Promise<string>>(0)
     ;(async () => {
       for (let s of src()) {
-        await c.send(() => genPromise(r, s))
+        await c.send(genPromiseCB(r, s))
       }
       c.close()
     })()
@@ -225,7 +229,7 @@ describe('workers()', () => {
     const c = new Chan<() => Promise<string>>(0)
     ;(async () => {
       for (let s of l) {
-        await c.send(() => genPromise(r, [s, 'f', s.endsWith('0') ? 10 : 0]))
+        await c.send(genPromiseCB(r, [s, 'f', s.endsWith('0') ? 10 : 0]))
       }
       c.close()
     })()
@@ -249,7 +253,7 @@ describe('workers()', () => {
     const c = new Chan<() => Promise<string>>(0)
     ;(async () => {
       for (let s of l) {
-        await c.send(() => genPromise(r, [s, 'f', s.endsWith('0') ? 10 : 0]))
+        await c.send(genPromiseCB(r, [s, 'f', s.endsWith('0') ? 10 : 0]))
       }
       c.close()
     })()
@@ -281,13 +285,17 @@ describe('workers()', () => {
     let err: any = undefined
     ;(async () => {
       for (let s of rsrc()) {
-        await c.send(() => {
-          const p = genPromise(r, s)
-          p.catch((r) => {
-            err = r
-          })
-          return p
-        })
+        await c.send(
+          ((r, s) => {
+            return () => {
+              const p = genPromise(r, s)
+              p.catch((r) => {
+                err = r
+              })
+              return p
+            }
+          })(r, s)
+        )
         if (err !== undefined) {
           break
         }
@@ -323,13 +331,17 @@ describe('workers()', () => {
     let err: any = undefined
     ;(async () => {
       for (let s of rsrc()) {
-        await c.send(() => {
-          const p = genPromise(r, s)
-          p.catch((r) => {
-            err = r
-          })
-          return p
-        })
+        await c.send(
+          ((r, s) => {
+            return () => {
+              const p = genPromise(r, s)
+              p.catch((r) => {
+                err = r
+              })
+              return p
+            }
+          })(r, s)
+        )
         if (err !== undefined) {
           break
         }
@@ -368,7 +380,7 @@ describe('payloads()', () => {
     const recResp: string[] = []
     ;(async () => {
       for (let s of src()) {
-        await ch.send([() => genPromise(r, s), s[0].toUpperCase()])
+        await ch.send([genPromiseCB(r, s), s[0].toUpperCase()])
       }
       ch.close()
     })()
@@ -401,7 +413,7 @@ describe('payloads()', () => {
     const recResp: string[] = []
     ;(async () => {
       for (let s of src()) {
-        await ch.send([() => genPromise(r, s), s[0].toUpperCase()])
+        await ch.send([genPromiseCB(r, s), s[0].toUpperCase()])
       }
       ch.close()
     })()
@@ -436,13 +448,15 @@ describe('payloads()', () => {
     ;(async () => {
       for (let s of rsrc()) {
         await ch.send([
-          () => {
-            const p = genPromise(r, s)
-            p.catch((r) => {
-              err = r
-            })
-            return p
-          },
+          ((r, s) => {
+            return () => {
+              const p = genPromise(r, s)
+              p.catch((r) => {
+                err = r
+              })
+              return p
+            }
+          })(r, s),
           s[0].toUpperCase()
         ])
         if (err !== undefined) {
@@ -483,13 +497,15 @@ describe('payloads()', () => {
     ;(async () => {
       for (let s of rsrc()) {
         await ch.send([
-          () => {
-            const p = genPromise(r, s)
-            p.catch((r) => {
-              err = r
-            })
-            return p
-          },
+          ((r, s) => {
+            return () => {
+              const p = genPromise(r, s)
+              p.catch((r) => {
+                err = r
+              })
+              return p
+            }
+          })(r, s),
           s[0].toUpperCase()
         ])
         if (err !== undefined) {
