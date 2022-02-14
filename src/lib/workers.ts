@@ -67,9 +67,7 @@ async function payloadOvertake<T, TPayload>(
   for await (let i of recv) {
     try {
       await send([await i[0](), i[1]])
-    } catch (r: any) {
-      await send([Promise.reject(r) as any, i[1]])
-    }
+    } catch {}
   }
 }
 
@@ -86,19 +84,28 @@ export function payloads<T, TPayload>(
   max: number,
   recv: ChanRecv<[() => Promise<T>, TPayload]>,
   opts: WorkersOpts = {}
-): ChanRecv<[Awaited<T> | Promise<T>, TPayload]> {
+): ChanRecv<[Awaited<T>, TPayload]> {
   const { keepOrder } = Object.assign(workersOptsDefault(), opts)
 
-  const ch = new Chan<[Promise<T> | Awaited<T>, TPayload]>(0)
+  const awaitCh = new Chan<[Promise<T> | Awaited<T>, TPayload]>(0)
+  const ch = new Chan<[Awaited<T>, TPayload]>(0)
   ;(async () => {
     await Promise.all(
       workerArray(
         max,
         opts.keepOrder ? payload : payloadOvertake,
-        ch.send,
+        awaitCh.send,
         recv
       )
     )
+    awaitCh.close()
+  })()
+  ;(async () => {
+    for await (let i of awaitCh.receiver()) {
+      try {
+        ch.send([await i[0], i[1]])
+      } catch {}
+    }
     ch.close()
   })()
 
