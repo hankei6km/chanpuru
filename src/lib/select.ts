@@ -1,14 +1,3 @@
-export async function* beatsGenerator(
-  timeout: number
-): AsyncGenerator<void, void, boolean | void> {
-  while (true) {
-    await new Promise<void>((resolve) => setTimeout(() => resolve(), timeout))
-    if (yield) {
-      break
-    }
-  }
-}
-
 type NextPromise<T, TReturn> = {
   next: Promise<IteratorResult<T, TReturn>>
   key: string
