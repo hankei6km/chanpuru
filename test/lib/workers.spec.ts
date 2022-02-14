@@ -377,8 +377,7 @@ describe('payloads()', () => {
 
     const rec: string[] = []
     for await (let [value, payload] of recv) {
-      const v = await value
-      rec.push(`${v}${payload}`)
+      rec.push(`${value}${payload}`)
     }
     timerUpdate = false
 
@@ -411,8 +410,7 @@ describe('payloads()', () => {
 
     const rec: string[] = []
     for await (let [value, payload] of recv) {
-      const v = await value
-      rec.push(`${v}${payload}`)
+      rec.push(`${value}${payload}`)
     }
     timerUpdate = false
 
@@ -458,11 +456,7 @@ describe('payloads()', () => {
 
     const rec: string[] = []
     for await (let [value, payload] of recv) {
-      try {
-        // reject が抜けてくる(keepOrder 側の挙動にあわせている).
-        const v = await value
-        rec.push(`${v}${payload}`)
-      } catch {}
+      rec.push(`${value}${payload}`)
     }
     timerUpdate = false
 
@@ -509,11 +503,7 @@ describe('payloads()', () => {
 
     const rec: string[] = []
     for await (let [value, payload] of recv) {
-      try {
-        // payload で keepOrder だと Promise が抜けてくるので catch が必要.
-        const v = await value
-        rec.push(`${v}${payload}`)
-      } catch {}
+      rec.push(`${value}${payload}`)
     }
     timerUpdate = false
 
@@ -556,9 +546,8 @@ describe('payloads()', () => {
 
     const rec: string[] = []
     for await (let [value, resp] of recv) {
-      const v = await value
-      rec.push(v)
-      await resp(v.toUpperCase())
+      rec.push(value)
+      await resp(value.toUpperCase())
     }
     timerUpdate = false
 
@@ -601,9 +590,8 @@ describe('payloads()', () => {
 
     const rec: string[] = []
     for await (let [value, resp] of recv) {
-      const v = await value
-      rec.push(v)
-      await resp(v.toUpperCase())
+      rec.push(value)
+      await resp(value.toUpperCase())
     }
     timerUpdate = false
 
@@ -643,9 +631,8 @@ describe('payloads()', () => {
 
     const rec: string[] = []
     for await (let [value, errSend] of recv) {
-      const v = await value
-      rec.push(v)
-      if (v === 'd') {
+      rec.push(value)
+      if (value === 'd') {
         await errSend('D')
       }
     }
@@ -690,9 +677,8 @@ describe('payloads()', () => {
 
     const rec: string[] = []
     for await (let [value, errSend] of recv) {
-      const v = await value
-      rec.push(v)
-      if (v === 'd') {
+      rec.push(value)
+      if (value === 'd') {
         await errSend('D')
       }
     }
