@@ -1,59 +1,90 @@
 export type GeneratorOpts = {
-  interval: number
+  timeout: number
   count?: number
 }
 
 function generatorOptsDefault(): Required<GeneratorOpts> {
   return {
-    interval: 0,
+    timeout: 0,
     count: 0
   }
 }
 
-export async function* beatsGenerator(
+export function beatsGenerator(
   opts: GeneratorOpts
-): AsyncGenerator<number, number, boolean | void> {
-  const { interval, count } = Object.assign(generatorOptsDefault(), opts)
+): [AsyncGenerator<number, number, void>, () => void] {
+  const { timeout: interval, count } = Object.assign(
+    generatorOptsDefault(),
+    opts
+  )
+  let timerId: any = undefined
+  let resolveWait: undefined | (() => void)
+  let canceled = false
+  const cancel = () => {
+    canceled = true
+    if (timerId !== undefined && resolveWait !== undefined) {
+      clearTimeout(timerId)
+      resolveWait()
+      timerId = undefined
+      resolveWait = undefined
+    }
+  }
 
-  let beatResolve: () => void // = () => {} // 現状では同期的に Promise の cb まで実行されるのでコメントアウト.
-  const intervalId = setInterval(() => beatResolve(), interval)
+  async function* _gen(): AsyncGenerator<number, number, void> {
+    const wait = async () => {
+      // cancel() // 現状ではないが定番なのでコメントとして残す.
+      return new Promise<void>((resolve) => {
+        resolveWait = resolve
+        timerId = setTimeout(() => {
+          timerId = undefined
+          resolveWait = undefined
+          resolve()
+        }, interval)
+      })
+    }
 
-  const lim = count - 1 // done を 1 回と数えるため
-  let beat = 0
+    const lim = count - 1 // done を 1 回と数えるため
+    let beat = 0
 
-  while (true) {
-    if (count <= 0 || beat < lim) {
-      await new Promise<void>((resolve) => (beatResolve = resolve))
-      if (yield beat) {
+    while (true) {
+      if (count <= 0 || beat < lim) {
+        await wait()
+        if (!canceled) {
+          yield beat
+        } else {
+          break
+        }
+      } else {
+        // 終了時もカウントを渡すので待つ.
+        await wait()
         break
       }
-    } else {
-      // 終了時もカウントを渡すので待つ.
-      await new Promise<void>((resolve) => (beatResolve = resolve))
-      break
+      beat++
     }
-    beat++
-  }
 
-  clearInterval(intervalId)
-  return beat
+    cancel()
+    return beat
+  }
+  return [_gen(), cancel]
 }
 
-export async function* rotateGenerator<T>(
+export function rotateGenerator<T>(
   s: T[],
   opts: GeneratorOpts
-): AsyncGenerator<T, void, boolean | void> {
-  const len = s.length
-  if (len > 0) {
-    const _opts = { ...opts }
-    if (typeof _opts.count === 'number') {
-      _opts.count = _opts.count + 1
+): [AsyncGenerator<T, void, void>, () => void] {
+  const _opts = { ...opts }
+  const [b, canceled] = beatsGenerator(_opts)
+  async function* _gen(): AsyncGenerator<T, void, void> {
+    const len = s.length
+    let cnt = 0
+    if (len > 0) {
+      for await (let beat of b) {
+        cnt = beat
+        yield s[cnt % len]
+      }
+      yield s[(cnt + 1) % len]
     }
-    const b = beatsGenerator(_opts)
-    let beat = await b.next()
-    while (!beat.done) {
-      const done = yield s[beat.value % len]
-      beat = await b.next(done)
-    }
+    canceled()
   }
+  return [_gen(), canceled]
 }
