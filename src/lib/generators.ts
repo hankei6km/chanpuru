@@ -38,3 +38,22 @@ export async function* beatsGenerator(
   clearInterval(intervalId)
   return beat
 }
+
+export async function* rotateGenerator<T>(
+  s: T[],
+  opts: GeneratorOpts
+): AsyncGenerator<T, void, boolean | void> {
+  const len = s.length
+  if (len > 0) {
+    const _opts = { ...opts }
+    if (typeof _opts.count === 'number') {
+      _opts.count = _opts.count + 1
+    }
+    const b = beatsGenerator(_opts)
+    let beat = await b.next()
+    while (!beat.done) {
+      const done = yield s[beat.value % len]
+      beat = await b.next(done)
+    }
+  }
+}

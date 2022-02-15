@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals'
 import { Chan } from '../../src/lib/chan.js'
-import { beatsGenerator } from '../../src/lib/generators.js'
+import { beatsGenerator, rotateGenerator } from '../../src/lib/generators.js'
 
 // jest.useFakeTimers の後の spyOn でも戻さないと
 // ReferenceError: setInterval is not defined になる.
@@ -144,5 +144,88 @@ describe('beatsGenerator()', () => {
     expect(mockClearInterval.mock.calls[0][0]).toEqual(
       mockSetInterval.mock.results[0].value
     )
+  })
+})
+
+describe('rotateGenerator()', () => {
+  it('should rotate values by generator', async () => {
+    jest.useFakeTimers()
+    const c = new Chan<string>()
+    const g = rotateGenerator(['a', 'b', 'c'], { interval: 1000 })
+    ;(async () => {
+      let cnt = 0
+      for await (let i of g) {
+        c.send(i)
+        if (cnt === 6) {
+          g.next(true)
+        }
+        cnt++
+      }
+      c.close()
+    })()
+    const i = c.receiver()
+
+    jest.advanceTimersByTime(1000)
+    expect((await i.next()).value).toEqual('a')
+
+    jest.advanceTimersByTime(1000)
+    expect((await i.next()).value).toEqual('b')
+
+    jest.advanceTimersByTime(1000)
+    expect((await i.next()).value).toEqual('c')
+
+    jest.advanceTimersByTime(1000)
+    expect((await i.next()).value).toEqual('a')
+
+    jest.advanceTimersByTime(1000)
+    expect((await i.next()).value).toEqual('b')
+
+    jest.advanceTimersByTime(1000)
+    expect((await i.next()).value).toEqual('c')
+
+    jest.advanceTimersByTime(1000)
+    expect((await i.next()).value).toEqual('a')
+
+    // jest.advanceTimersByTime(1000) // 終了時は待たない.
+    expect((await i.next()).done).toBeTruthy()
+  })
+
+  it('should exit generator by counter', async () => {
+    jest.useFakeTimers()
+    const c = new Chan<string>()
+    const g = rotateGenerator(['a', 'b', 'c'], { interval: 1000, count: 4 })
+    ;(async () => {
+      let cnt = 0
+      for await (let i of g) {
+        c.send(i)
+        if (cnt === 6) {
+          g.next(true)
+        }
+        cnt++
+      }
+      c.close()
+    })()
+    const i = c.receiver()
+
+    jest.advanceTimersByTime(1000)
+    expect((await i.next()).value).toEqual('a')
+
+    jest.advanceTimersByTime(1000)
+    expect((await i.next()).value).toEqual('b')
+
+    jest.advanceTimersByTime(1000)
+    expect((await i.next()).value).toEqual('c')
+
+    jest.advanceTimersByTime(1000)
+    expect((await i.next()).value).toEqual('a')
+
+    jest.advanceTimersByTime(1000)
+    expect((await i.next()).done).toBeTruthy()
+  })
+
+  it('should not generate value when empty array passed', async () => {
+    jest.useFakeTimers()
+    const g = rotateGenerator([], { interval: 1000 })
+    expect((await g.next()).done).toBeTruthy()
   })
 })
