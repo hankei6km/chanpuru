@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals'
 import { Chan } from '../../src/lib/chan.js'
-import { select, beatsGenerator } from '../../src/lib/select.js'
+import { select} from '../../src/lib/select.js'
 
 const genTimerPromise: (tag: string, timeout: number[]) => Promise<string>[] = (
   tag,
@@ -13,40 +13,6 @@ const genTimerPromise: (tag: string, timeout: number[]) => Promise<string>[] = (
 
 afterEach(() => {
   jest.useRealTimers()
-})
-
-describe('beatsGenerator()', () => {
-  it('should count by timer', async () => {
-    jest.useFakeTimers()
-    const c = new Chan<number>()
-    const g = beatsGenerator(1000)
-    let cnt = 0
-    ;(async () => {
-      let done = false
-      while (!(await g.next(done)).done) {
-        cnt++
-        c.send(cnt)
-        if (cnt === 3) {
-          done = true
-        }
-      }
-      c.close()
-    })()
-    const i = c.receiver()
-    expect(cnt).toEqual(0)
-
-    jest.advanceTimersByTime(1000)
-    expect((await i.next()).value).toEqual(1)
-
-    jest.advanceTimersByTime(1000)
-    expect((await i.next()).value).toEqual(2)
-
-    jest.advanceTimersByTime(1000)
-    expect((await i.next()).value).toEqual(3)
-
-    jest.advanceTimersByTime(1000)
-    expect((await i.next()).done).toBeTruthy()
-  })
 })
 
 describe('select()', () => {
