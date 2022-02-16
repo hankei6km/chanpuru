@@ -1,4 +1,5 @@
 import { jest } from '@jest/globals'
+import EventEmitter from 'events'
 import {
   abortPromise,
   cancelPromise,
@@ -29,9 +30,24 @@ describe('canccelPromise()', () => {
 })
 
 describe('abortPromise()', () => {
-  it('should cancel', async () => {
+  class DummySignal extends EventEmitter {
+    addEventListener(...args: any[]) {
+      this.addListener(args[0], args[1])
+    }
+  }
+  const getSignalAndAbort = (): [AbortSignal, AbortController['abort']] => {
+    const forceDummy = false
+    if (forceDummy || typeof AbortController === 'undefined') {
+      const signal = new DummySignal()
+      return [signal as any, () => signal.emit('abort')]
+    }
     const a = new AbortController()
-    const [c, cancel] = abortPromise(a.signal)
+    return [a.signal, () => a.abort()]
+  }
+
+  it('should cancel', async () => {
+    const [signal, abort] = getSignalAndAbort()
+    const [c, cancel] = abortPromise(signal)
     let canceled = false
     let reason: any = undefined
     c.then(
@@ -54,7 +70,7 @@ describe('abortPromise()', () => {
     expect(canceled).toBeTruthy()
     expect(reason).toBeUndefined()
 
-    a.abort() // 結果は変わらない
+    abort() // 結果は変わらない
 
     await Promise.resolve()
     expect(canceled).toBeTruthy()
@@ -63,8 +79,8 @@ describe('abortPromise()', () => {
   })
 
   it('should abort', async () => {
-    const a = new AbortController()
-    const [c, cancel] = abortPromise(a.signal)
+    const [signal, abort] = getSignalAndAbort()
+    const [c, cancel] = abortPromise(signal as any)
     let canceled = false
     let reason: any = undefined
     c.then(
@@ -81,7 +97,7 @@ describe('abortPromise()', () => {
     expect(canceled).toBeFalsy()
     expect(reason).toBeUndefined()
 
-    a.abort()
+    abort()
 
     await Promise.resolve()
     expect(canceled).toBeFalsy()
