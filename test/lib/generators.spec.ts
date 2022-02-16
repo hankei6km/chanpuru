@@ -1,4 +1,5 @@
 import { jest } from '@jest/globals'
+import { cancelPromise, timeoutPromise } from '../../src/lib/cancel.js'
 import { Chan } from '../../src/lib/chan.js'
 import { beatsGenerator, rotateGenerator } from '../../src/lib/generators.js'
 
@@ -19,12 +20,14 @@ describe('beatsGenerator()', () => {
     const mockSetTimeout = jest.spyOn(global, 'setTimeout')
     const mockClearTimeout = jest.spyOn(global, 'clearTimeout')
     const c = new Chan<number>()
-    const [g, cancel] = beatsGenerator({ timeout: 1000 })
+    const [p, cancel] = cancelPromise()
+    const g = beatsGenerator(p, { timeout: 1000 })
     ;(async () => {
       // 別の async function で待つと timer が実行される?
       // 以下のように直接待つと実行されない.
       // jest.advanceTimersByTime(1000)
       // expect((await g.next()).value).toEqual(1)
+      // await Promise.resolve()
       for await (let cnt of g) {
         c.send(cnt)
         if (cnt === 3) {
@@ -47,12 +50,14 @@ describe('beatsGenerator()', () => {
     jest.advanceTimersByTime(1000)
     expect((await i.next()).value).toEqual(3)
 
-    jest.advanceTimersByTime(1000)
+    // jest.advanceTimersByTime(1000) // cancel されたので待たない.
     expect((await i.next()).done).toBeTruthy()
 
     expect(mockSetTimeout).toBeCalledTimes(5)
-    expect(mockClearTimeout).toBeCalledTimes(0) // timer はすべて実行されているので clear は実行されない.
+    expect(mockClearTimeout).toBeCalledTimes(1)
     expect(mockSetTimeout.mock.calls[0][1]).toEqual(1000)
+
+    cancel()
   })
 
   it('should exit generator by counter', async () => {
@@ -60,7 +65,8 @@ describe('beatsGenerator()', () => {
     const mockSetTimeout = jest.spyOn(global, 'setTimeout')
     const mockClearTimeout = jest.spyOn(global, 'clearTimeout')
     const c = new Chan<number>()
-    const [g] = beatsGenerator({ timeout: 1000, count: 3 })
+    const [p, cancel] = cancelPromise()
+    const g = beatsGenerator(p, { timeout: 1000, count: 3 })
     ;(async () => {
       for await (let cnt of g) {
         c.send(cnt)
@@ -84,6 +90,8 @@ describe('beatsGenerator()', () => {
     expect(mockSetTimeout).toBeCalledTimes(3)
     expect(mockClearTimeout).toBeCalledTimes(0)
     expect(mockSetTimeout.mock.calls[0][1]).toEqual(1000)
+
+    cancel()
   })
 
   it('should wait timer when count passed 1', async () => {
@@ -91,7 +99,8 @@ describe('beatsGenerator()', () => {
     const mockSetTimeout = jest.spyOn(global, 'setTimeout')
     const mockClearTimeout = jest.spyOn(global, 'clearTimeout')
     const c = new Chan<number>()
-    const [g] = beatsGenerator({ timeout: 1000, count: 1 })
+    const [p, cancel] = cancelPromise()
+    const g = beatsGenerator(p, { timeout: 1000, count: 1 })
     let sended = false
     ;(async () => {
       for await (let cnt of g) {
@@ -115,13 +124,36 @@ describe('beatsGenerator()', () => {
     expect(mockSetTimeout).toBeCalledTimes(1)
     expect(mockClearTimeout).toBeCalledTimes(0)
     expect(mockSetTimeout.mock.calls[0][1]).toEqual(1000)
+
+    cancel()
+  })
+
+  it('should reject in generator', async () => {
+    jest.useFakeTimers()
+    const [p, cancel] = timeoutPromise(10)
+    const g = beatsGenerator(p, { timeout: 1000, count: 1 })
+
+    let rejectedReason: any = undefined
+
+    const i = g.next().catch((r) => {
+      rejectedReason = r
+    })
+
+    jest.advanceTimersByTime(10)
+
+    // await Promise.resolve()
+    await i
+    expect(rejectedReason).not.toBeUndefined()
+
+    cancel()
   })
 
   it('should clear timer when cancel while waiting', async () => {
     // jest.useFakeTimers()
     const mockSetTimeout = jest.spyOn(global, 'setTimeout')
     const mockClearTimeout = jest.spyOn(global, 'clearTimeout')
-    const [g, cancel] = beatsGenerator({ timeout: 1000 })
+    const [p, cancel] = cancelPromise()
+    const g = beatsGenerator(p, { timeout: 1000 })
 
     // 途中で待機させる.
     const partial = g.next()
@@ -136,13 +168,16 @@ describe('beatsGenerator()', () => {
     expect(mockSetTimeout).toBeCalledTimes(1)
     expect(mockClearTimeout).toBeCalledTimes(1)
     expect(mockSetTimeout.mock.calls[0][1]).toEqual(1000)
+
+    cancel()
   })
 
   it('should accept timeout is zero', async () => {
     const mockSetTimeout = jest.spyOn(global, 'setTimeout')
     const mockClearTimeout = jest.spyOn(global, 'clearTimeout')
 
-    const [g] = beatsGenerator({ timeout: 0, count: 3 })
+    const [p, cancel] = cancelPromise()
+    const g = beatsGenerator(p, { timeout: 0, count: 3 })
 
     expect((await g.next()).value).toEqual(0)
     expect((await g.next()).value).toEqual(1)
@@ -153,6 +188,8 @@ describe('beatsGenerator()', () => {
     expect(mockSetTimeout).toBeCalledTimes(3)
     expect(mockClearTimeout).toBeCalledTimes(0)
     expect(mockSetTimeout.mock.calls[0][1]).toEqual(0)
+
+    cancel()
   })
 })
 
@@ -160,7 +197,9 @@ describe('rotateGenerator()', () => {
   it('should rotate values by generator', async () => {
     jest.useFakeTimers()
     const c = new Chan<string>()
-    const [g, cancel] = rotateGenerator(['a', 'b', 'c'], { timeout: 1000 })
+
+    const [p, cancel] = cancelPromise()
+    const g = rotateGenerator(p, ['a', 'b', 'c'], { timeout: 1000 })
     ;(async () => {
       let cnt = 0
       for await (let i of g) {
@@ -200,12 +239,16 @@ describe('rotateGenerator()', () => {
 
     // jest.advanceTimersByTime(1000) // 終了時は待たない.
     expect((await i.next()).done).toBeTruthy()
+
+    cancel()
   })
 
   it('should exit generator by counter', async () => {
     jest.useFakeTimers()
     const c = new Chan<string>()
-    const [g] = rotateGenerator(['a', 'b', 'c'], { timeout: 1000, count: 4 })
+
+    const [p, cancel] = cancelPromise()
+    const g = rotateGenerator(p, ['a', 'b', 'c'], { timeout: 1000, count: 4 })
     ;(async () => {
       let cnt = 0
       for await (let i of g) {
@@ -229,11 +272,15 @@ describe('rotateGenerator()', () => {
     expect((await i.next()).value).toEqual('a')
 
     expect((await i.next()).done).toBeTruthy()
+
+    cancel()
   })
 
   it('should not generate value when empty array passed', async () => {
     jest.useFakeTimers()
-    const [g] = rotateGenerator([], { timeout: 1000 })
+    const [p, cancel] = cancelPromise()
+    const g = rotateGenerator(p, [], { timeout: 1000 })
     expect((await g.next()).done).toBeTruthy()
+    cancel()
   })
 })
