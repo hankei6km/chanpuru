@@ -1,3 +1,6 @@
+import { send } from 'process'
+import { Chan } from './chan.js'
+
 export type GeneratorOpts = {
   timeout: number
   count?: number
@@ -99,4 +102,50 @@ export async function* rotateGenerator<T>(
   }
 
   return
+}
+
+export async function* _fromReadableStreamGenerator<T>(
+  s: ReadableStream<T>
+): AsyncGenerator<T, void, void> {
+  const reader = s.getReader()
+  let r = await reader.read()
+  while (!r.done) {
+    yield r.value
+  }
+}
+
+export async function* _fromNodeJsReadableStreamGenerator(
+  s: NodeJS.ReadableStream
+): AsyncGenerator<string | Buffer, void, void> {
+  for await (let i of s) {
+    yield i
+  }
+}
+
+function isReadableStream(
+  s: ReadableStream | NodeJS.ReadableStream
+): s is ReadableStream {
+  if (typeof ReadableStream !== 'undefined' && s instanceof ReadableStream) {
+    return true
+  }
+  return false
+}
+
+export function fromReadableStreamGenerator<T>(
+  s: ReadableStream<T>
+): AsyncGenerator<T, void, void>
+
+export function fromReadableStreamGenerator<T>(
+  s: NodeJS.ReadableStream
+): AsyncGenerator<string | Buffer, void, void>
+
+export function fromReadableStreamGenerator<T>(
+  s: ReadableStream<T> | NodeJS.ReadableStream
+): AsyncGenerator<T, void, void> | AsyncGenerator<string | Buffer, void, void> {
+  if (isReadableStream(s)) {
+    return _fromReadableStreamGenerator(s)
+  }
+  // NodeJS.ReadableStream は for await...of で使えるから Generator 化は必須ではないが、
+  // fetch で使うかもしれないので.
+  return _fromNodeJsReadableStreamGenerator(s)
 }

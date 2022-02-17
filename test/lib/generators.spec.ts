@@ -1,7 +1,12 @@
 import { jest } from '@jest/globals'
+import { Readable } from 'stream'
 import { cancelPromise, timeoutPromise } from '../../src/lib/cancel.js'
 import { Chan } from '../../src/lib/chan.js'
-import { beatsGenerator, rotateGenerator } from '../../src/lib/generators.js'
+import {
+  beatsGenerator,
+  fromReadableStreamGenerator,
+  rotateGenerator
+} from '../../src/lib/generators.js'
 
 // jest.useFakeTimers の後の spyOn でも戻さないと
 // ReferenceError: setTimeout is not defined になる.
@@ -283,4 +288,38 @@ describe('rotateGenerator()', () => {
     expect((await g.next()).done).toBeTruthy()
     cancel()
   })
+})
+
+describe('fromReadableStreamGenerator()', () => {
+  it('should make generator from NodeJS.readableStream', async () => {
+    const tbl = ['a', 'b', 'c', 'd', 'e']
+    const rs = Readable.from(tbl)
+    const rec: string[] = []
+    for await (let i of fromReadableStreamGenerator(rs)) {
+      rec.push(i.toString('utf-8'))
+    }
+    expect(rec).toEqual(tbl)
+  })
+  it('should reject by NodeJS.readableStream', async () => {
+    async function* gen() {
+      yield 'a'
+      yield 'b'
+      yield Promise.reject('rejected')
+    }
+    const rs = Readable.from(gen())
+    const rec: string[] = []
+    let rejected: any
+    try {
+      for await (let i of fromReadableStreamGenerator(rs)) {
+        rec.push(i.toString('utf-8'))
+      }
+    } catch (e) {
+      rejected = e
+    }
+    expect(rejected).toEqual('rejected')
+  })
+  // https://developer.mozilla.org/ja/docs/Web/API/Streams_API
+  // こちらの ReadableStream でのテストはできていない.
+  // it('should make generator from (dom) ReadableStream', async () => {
+  // })
 })
