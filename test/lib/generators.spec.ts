@@ -1,5 +1,6 @@
 import { jest } from '@jest/globals'
 import { Readable } from 'stream'
+import { getSignalAndAbort } from '../util.js'
 import {
   abortPromise,
   emptyPromise,
@@ -406,13 +407,13 @@ describe('breakGenerator()', () => {
         f = true
       }
     }
-    const ac = new AbortController()
-    const [cancelPromise, cancel] = abortPromise(ac.signal)
+    const [signal, abort] = getSignalAndAbort()
+    const [cancelPromise, cancel] = abortPromise(signal)
     const g = breakGenerator(cancelPromise, gen(), 10 as any)
 
     expect(await g.next()).toEqual({ done: false, value: 0 })
     expect(await g.next()).toEqual({ done: false, value: 1 })
-    ac.abort()
+    abort()
     await cancelPromise.catch(() => {})
     expect(await g.next()).toEqual({ done: true, value: 10 })
     expect(f).toBeTruthy()
