@@ -3,7 +3,8 @@ export { select } from './lib/select.js'
 export {
   beatsGenerator,
   rotateGenerator,
-  fromReadableStreamGenerator
+  fromReadableStreamGenerator,
+  breakGenerator
 } from './lib/generators.js'
 export { workers, payloads } from './lib/workers.js'
 export {

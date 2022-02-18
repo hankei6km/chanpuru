@@ -149,3 +149,36 @@ export function fromReadableStreamGenerator<T>(
   // fetch で使うかもしれないので.
   return _fromNodeJsReadableStreamGenerator(s)
 }
+
+export async function* breakGenerator<
+  T = unknown,
+  TReturn = any,
+  TNext = unknown
+>(
+  cancelPromise: Promise<void>,
+  srcGenerator: AsyncGenerator<T, TReturn, TNext>,
+  retrunValue?: TReturn
+): AsyncGenerator<T, TReturn, TNext> {
+  let breaked = false
+  cancelPromise
+    .then(() => {
+      breaked = true
+    })
+    .catch((r) => {
+      // reject でもループを終了するだけ.
+      // エラー処理はループ終了は別に行う(はず).
+      breaked = true
+    })
+  // 最初の next() 前に終了していた場合.
+  if (!breaked) {
+    let v = await srcGenerator.next()
+    while (!v.done && !breaked) {
+      const n = yield v.value
+      v = await srcGenerator.next(n)
+    }
+    if (!breaked) {
+      return v.value as any
+    }
+  }
+  return (await srcGenerator.return(retrunValue as any)).value as any
+}

@@ -1,9 +1,14 @@
 import { jest } from '@jest/globals'
 import { Readable } from 'stream'
-import { emptyPromise, timeoutPromise } from '../../src/lib/cancel.js'
+import {
+  abortPromise,
+  emptyPromise,
+  timeoutPromise
+} from '../../src/lib/cancel.js'
 import { Chan } from '../../src/lib/chan.js'
 import {
   beatsGenerator,
+  breakGenerator,
   fromReadableStreamGenerator,
   rotateGenerator
 } from '../../src/lib/generators.js'
@@ -322,4 +327,96 @@ describe('fromReadableStreamGenerator()', () => {
   // こちらの ReadableStream でのテストはできていない.
   // it('should make generator from (dom) ReadableStream', async () => {
   // })
+})
+
+describe('breakGenerator()', () => {
+  it('should return by normal end', async () => {
+    let f = false
+    async function* gen() {
+      try {
+        yield 0
+        yield 1
+        yield 2
+      } finally {
+        f = true
+      }
+    }
+    const [cancelPromise, cancel] = emptyPromise()
+    const g = breakGenerator(cancelPromise, gen(), 10 as any)
+
+    expect(await g.next()).toEqual({ done: false, value: 0 })
+    expect(await g.next()).toEqual({ done: false, value: 1 })
+    expect(await g.next()).toEqual({ done: false, value: 2 })
+    expect(await g.next()).toEqual({ done: true, value: undefined })
+    expect(f).toBeTruthy()
+    cancel()
+    await cancelPromise.catch(() => {})
+    expect(await g.next()).toEqual({ done: true, value: undefined })
+  })
+  it('should return by cancel', async () => {
+    let f = false
+    async function* gen() {
+      try {
+        yield 0
+        yield 1
+        yield 2
+      } finally {
+        f = true
+      }
+    }
+    const [cancelPromise, cancel] = emptyPromise()
+    const g = breakGenerator(cancelPromise, gen(), 10 as any)
+
+    expect(await g.next()).toEqual({ done: false, value: 0 })
+    expect(await g.next()).toEqual({ done: false, value: 1 })
+    cancel()
+    await cancelPromise.catch(() => {})
+    expect(await g.next()).toEqual({ done: true, value: 10 })
+    expect(f).toBeTruthy()
+    expect(await g.next()).toEqual({ done: true, value: undefined })
+  })
+  it('should return by cancel before first next()', async () => {
+    let f = false
+    async function* gen() {
+      try {
+        yield 0
+        yield 1
+        yield 2
+      } finally {
+        f = true
+      }
+    }
+    const [cancelPromise, cancel] = emptyPromise()
+    const g = breakGenerator(cancelPromise, gen(), 10 as any)
+
+    cancel()
+    await cancelPromise.catch(() => {})
+    expect(await g.next()).toEqual({ done: true, value: 10 })
+    expect(f).toBeTruthy()
+    expect(await g.next()).toEqual({ done: true, value: undefined })
+  })
+  it('should return by abort', async () => {
+    let f = false
+    async function* gen() {
+      try {
+        yield 0
+        yield 1
+        yield 2
+      } finally {
+        f = true
+      }
+    }
+    const ac = new AbortController()
+    const [cancelPromise, cancel] = abortPromise(ac.signal)
+    const g = breakGenerator(cancelPromise, gen(), 10 as any)
+
+    expect(await g.next()).toEqual({ done: false, value: 0 })
+    expect(await g.next()).toEqual({ done: false, value: 1 })
+    ac.abort()
+    await cancelPromise.catch(() => {})
+    expect(await g.next()).toEqual({ done: true, value: 10 })
+    expect(f).toBeTruthy()
+    expect(await g.next()).toEqual({ done: true, value: undefined })
+    cancel()
+  })
 })
