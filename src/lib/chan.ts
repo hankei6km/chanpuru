@@ -77,7 +77,7 @@ export class Chan<T> {
   private async gate(): Promise<{ done: boolean }> {
     // バッファーが埋まっていない場合は、send されるまで待つ.
     // close されていれば素通し.
-    while (this.buf.length < this.bufSize && !this.closed) {
+    while (this.buf.length === 0 && !this.closed) {
       await this.bufPromise
       this.bufReset()
     }
@@ -96,17 +96,23 @@ export class Chan<T> {
           if (i.done) {
             return
           }
-          yield this.buf[0]
-        } catch (e) {
-          if (this.opts.rejectInReceiver) {
-            // value が Promise だった場合、receiver 側の for await...of などに reject を伝播させる.
-            yield Promise.reject(e)
-          }
-        } finally {
+          const v = await this.buf[0]
+          // バッファーを空ける(yeild の後でやると次回の next() まで実行されないので注意).
           this.buf.shift()
           // send 側へ空きができたことを通知.
           this.valueRelease()
           this.valueReset()
+          yield v
+        } catch (e) {
+          // rejct された場合もバッファーを空ける.
+          this.buf.shift()
+          // send 側へ空きができたことを通知.
+          this.valueRelease()
+          this.valueReset()
+          if (this.opts.rejectInReceiver) {
+            // value が Promise だった場合、receiver 側の for await...of などに reject を伝播させる.
+            yield Promise.reject(e)
+          }
         }
       }
     } finally {

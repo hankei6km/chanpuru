@@ -489,32 +489,36 @@ describe('Chan()', () => {
   })
 
   it('should returns immediately if the buffer is not full(long)', async () => {
-    const len = 500
+    const len = 100
     const s = new Array<string>(len).fill('').map((_v, i) => `${i}`)
     const c = new Chan<string>(3)
+    const stepCh = new Chan<void>(10)
     let cnt = 0
     ;(async () => {
       for (let i = 0; i < s.length; i++) {
         await c.send(s[i])
         cnt++
+        await stepCh.send()
       }
       c.close()
+      stepCh.close()
     })()
     const i = c.receiver()
-    expect(cnt).toEqual(0)
-    await i.next()
-    expect(cnt).toEqual(3)
-    await i.next()
-    await i.next()
-    await i.next()
-    await i.next()
-    expect(cnt).toEqual(7)
-    await i.next()
-    await i.next()
-    await i.next()
-    await i.next()
-    expect(cnt).toEqual(11)
+    const step = stepCh.receiver()
 
+    expect(cnt).toEqual(0)
+    await step.next()
+    await step.next()
+    await step.next()
+    expect(cnt).toEqual(3) // c からは受信していないがループは 3 回実行されている.
+
+    for (let idx = 4; idx < 101; idx++) {
+      await i.next()
+      await step.next()
+      expect(cnt).toEqual(idx)
+    }
+
+    // c の残りを受信しておく.
     for await (let v of i) {
     }
 

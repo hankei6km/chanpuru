@@ -80,20 +80,32 @@ async function payload<T, TPayload>(
   }
 }
 
-export function payloads<T, TPayload>(
+export function _payloadsOverTake<T, TPayload>(
   max: number,
   recv: ChanRecv<[() => Promise<T>, TPayload]>,
-  opts: WorkersOpts = {}
+  opts: WorkersOpts
 ): ChanRecv<[Awaited<T>, TPayload]> {
-  const { keepOrder } = Object.assign(workersOptsDefault(), opts)
+  const ch = new Chan<[Awaited<T>, TPayload]>(0)
+  ;(async () => {
+    await Promise.all(workerArray(max, payloadOvertake, ch.send, recv))
+    ch.close()
+  })()
 
+  return ch.receiver()
+}
+
+export function _payloads<T, TPayload>(
+  max: number,
+  recv: ChanRecv<[() => Promise<T>, TPayload]>,
+  opts: WorkersOpts
+): ChanRecv<[Awaited<T>, TPayload]> {
   const awaitCh = new Chan<[Promise<T> | Awaited<T>, TPayload]>(0)
   const ch = new Chan<[Awaited<T>, TPayload]>(0)
   ;(async () => {
     await Promise.all(
       workerArray(
-        max,
-        opts.keepOrder ? payload : payloadOvertake,
+        max - 1, // awaitCh で 1 つ実行状態になるので -1 する.
+        payload,
         awaitCh.send,
         recv
       )
@@ -110,4 +122,19 @@ export function payloads<T, TPayload>(
   })()
 
   return ch.receiver()
+}
+
+export function payloads<T, TPayload>(
+  max: number,
+  recv: ChanRecv<[() => Promise<T>, TPayload]>,
+  opts: WorkersOpts = {}
+): ChanRecv<[Awaited<T>, TPayload]> {
+  const { keepOrder } = Object.assign(workersOptsDefault(), opts)
+
+  if (keepOrder && max > 1) {
+    // 同時実行数 1 では対応できない.
+    // (1 なら順庵はかわらないので _payloadsOverTake を利用)
+    return _payloads(max, recv, opts)
+  }
+  return _payloadsOverTake(max, recv, opts)
 }

@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals'
 import { Chan } from '../../src/lib/chan.js'
-import { select} from '../../src/lib/select.js'
+import { select } from '../../src/lib/select.js'
 
 const genTimerPromise: (tag: string, timeout: number[]) => Promise<string>[] = (
   tag,
@@ -75,8 +75,8 @@ describe('select()', () => {
     expect(res[4]).toEqual(['one', { value: '1-2', done: false }])
     expect(res[5]).toEqual(['two', { value: '2-2', done: false }])
     expect(res[6]).toEqual(['one', { value: '1-3', done: false }])
-    expect(res[7]).toEqual(['two', { value: '2-3', done: false }])
-    expect(res[8]).toEqual(['one', { value: undefined, done: true }])
+    expect(res[7]).toEqual(['one', { value: undefined, done: true }])
+    expect(res[8]).toEqual(['two', { value: '2-3', done: false }])
     expect(res[9]).toEqual(['two', { value: undefined, done: true }])
   })
 
@@ -172,8 +172,8 @@ describe('select()', () => {
     expect(res[6]).toEqual(['one', { value: '1-3', done: false }])
     expect(res[7]).toEqual(['two', { value: '2-3', done: false }])
     expect(res[8]).toEqual(['one', { value: '1-4', done: false }])
-    expect(res[9]).toEqual(['two', { value: undefined, done: true }])
-    expect(res[10]).toEqual(['one', { value: undefined, done: true }])
+    expect(res[9]).toEqual(['one', { value: undefined, done: true }])
+    expect(res[10]).toEqual(['two', { value: undefined, done: true }])
     expect(sendErr).toEqual('rejected')
     expect(selectErr).toEqual(undefined)
   })
