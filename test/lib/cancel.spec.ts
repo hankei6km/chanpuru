@@ -2,7 +2,7 @@ import { jest } from '@jest/globals'
 import EventEmitter from 'events'
 import {
   abortPromise,
-  cancelPromise,
+  emptyPromise,
   mixPromise,
   timeoutPromise
 } from '../../src/lib/cancel.js'
@@ -26,9 +26,9 @@ afterEach(() => {
   jest.useRealTimers()
 })
 
-describe('canccelPromise()', () => {
+describe('emptyPromise()', () => {
   it('should cancel', async () => {
-    const [c, cancel] = cancelPromise()
+    const [c, cancel] = emptyPromise()
     let canceled = false
     c.then(() => {
       canceled = true

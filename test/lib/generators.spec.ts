@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals'
 import { Readable } from 'stream'
-import { cancelPromise, timeoutPromise } from '../../src/lib/cancel.js'
+import { emptyPromise, timeoutPromise } from '../../src/lib/cancel.js'
 import { Chan } from '../../src/lib/chan.js'
 import {
   beatsGenerator,
@@ -25,7 +25,7 @@ describe('beatsGenerator()', () => {
     const mockSetTimeout = jest.spyOn(global, 'setTimeout')
     const mockClearTimeout = jest.spyOn(global, 'clearTimeout')
     const c = new Chan<number>()
-    const [p, cancel] = cancelPromise()
+    const [p, cancel] = emptyPromise()
     const g = beatsGenerator(p, { timeout: 1000 })
     ;(async () => {
       // 別の async function で待つと timer が実行される?
@@ -70,7 +70,7 @@ describe('beatsGenerator()', () => {
     const mockSetTimeout = jest.spyOn(global, 'setTimeout')
     const mockClearTimeout = jest.spyOn(global, 'clearTimeout')
     const c = new Chan<number>()
-    const [p, cancel] = cancelPromise()
+    const [p, cancel] = emptyPromise()
     const g = beatsGenerator(p, { timeout: 1000, count: 3 })
     ;(async () => {
       for await (let cnt of g) {
@@ -104,7 +104,7 @@ describe('beatsGenerator()', () => {
     const mockSetTimeout = jest.spyOn(global, 'setTimeout')
     const mockClearTimeout = jest.spyOn(global, 'clearTimeout')
     const c = new Chan<number>()
-    const [p, cancel] = cancelPromise()
+    const [p, cancel] = emptyPromise()
     const g = beatsGenerator(p, { timeout: 1000, count: 1 })
     let sended = false
     ;(async () => {
@@ -157,7 +157,7 @@ describe('beatsGenerator()', () => {
     // jest.useFakeTimers()
     const mockSetTimeout = jest.spyOn(global, 'setTimeout')
     const mockClearTimeout = jest.spyOn(global, 'clearTimeout')
-    const [p, cancel] = cancelPromise()
+    const [p, cancel] = emptyPromise()
     const g = beatsGenerator(p, { timeout: 1000 })
 
     // 途中で待機させる.
@@ -181,7 +181,7 @@ describe('beatsGenerator()', () => {
     const mockSetTimeout = jest.spyOn(global, 'setTimeout')
     const mockClearTimeout = jest.spyOn(global, 'clearTimeout')
 
-    const [p, cancel] = cancelPromise()
+    const [p, cancel] = emptyPromise()
     const g = beatsGenerator(p, { timeout: 0, count: 3 })
 
     expect((await g.next()).value).toEqual(0)
@@ -203,7 +203,7 @@ describe('rotateGenerator()', () => {
     jest.useFakeTimers()
     const c = new Chan<string>()
 
-    const [p, cancel] = cancelPromise()
+    const [p, cancel] = emptyPromise()
     const g = rotateGenerator(p, ['a', 'b', 'c'], { timeout: 1000 })
     ;(async () => {
       let cnt = 0
@@ -252,7 +252,7 @@ describe('rotateGenerator()', () => {
     jest.useFakeTimers()
     const c = new Chan<string>()
 
-    const [p, cancel] = cancelPromise()
+    const [p, cancel] = emptyPromise()
     const g = rotateGenerator(p, ['a', 'b', 'c'], { timeout: 1000, count: 4 })
     ;(async () => {
       let cnt = 0
@@ -283,7 +283,7 @@ describe('rotateGenerator()', () => {
 
   it('should not generate value when empty array passed', async () => {
     jest.useFakeTimers()
-    const [p, cancel] = cancelPromise()
+    const [p, cancel] = emptyPromise()
     const g = rotateGenerator(p, [], { timeout: 1000 })
     expect((await g.next()).done).toBeTruthy()
     cancel()
