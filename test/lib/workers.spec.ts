@@ -311,7 +311,7 @@ describe('workers()', () => {
     }
     timerUpdate = false
 
-    expect(rec).toEqual(['a', 'c', 'b'])
+    expect(rec).toEqual(['a', 'c', 'b', 'e'])
     expect(err).toEqual('d')
     expect(r.record()).toEqual(4)
   })
@@ -357,7 +357,7 @@ describe('workers()', () => {
     }
     timerUpdate = false
 
-    expect(rec).toEqual(['a', 'b', 'c'])
+    expect(rec).toEqual(['a', 'b', 'c', 'e'])
     expect(err).toEqual('d')
     expect(r.record()).toEqual(4)
   })
@@ -430,6 +430,39 @@ describe('payloads()', () => {
     expect(r.record()).toEqual(3)
   })
 
+  it('should receive all items with payload(keep oredr, max=1)', async () => {
+    jest.useFakeTimers()
+    let timerUpdate = true
+    ;(async () => {
+      while (timerUpdate) {
+        jest.advanceTimersByTime(5)
+        await new Promise<void>((resolve) => resolve())
+      }
+    })()
+    const r = new RecordMax()
+
+    const ch = new Chan<[() => Promise<string>, string]>(0)
+
+    const recResp: string[] = []
+    ;(async () => {
+      for (let s of src()) {
+        await ch.send([genPromiseCB(r, s), s[0].toUpperCase()])
+      }
+      ch.close()
+    })()
+
+    const recv = payloads(1, ch.receiver(), { keepOrder: true })
+
+    const rec: string[] = []
+    for await (let [value, payload] of recv) {
+      rec.push(`${value}${payload}`)
+    }
+    timerUpdate = false
+
+    expect(rec).toEqual(['aA', 'bB', 'cC', 'dD', 'eE', 'fF'])
+    expect(r.record()).toEqual(1)
+  })
+
   it('should close without reject receiver side', async () => {
     jest.useFakeTimers()
     let timerUpdate = true
@@ -474,7 +507,7 @@ describe('payloads()', () => {
     }
     timerUpdate = false
 
-    expect(rec).toEqual(['aA', 'cC', 'bB'])
+    expect(rec).toEqual(['aA', 'cC', 'bB', 'eE'])
     expect(err).toEqual('d')
     expect(r.record()).toEqual(3)
   })
@@ -523,7 +556,7 @@ describe('payloads()', () => {
     }
     timerUpdate = false
 
-    expect(rec).toEqual(['aA', 'bB', 'cC'])
+    expect(rec).toEqual(['aA', 'bB', 'cC', 'eE'])
     expect(err).toEqual('d')
     expect(r.record()).toEqual(3)
   })
@@ -628,11 +661,11 @@ describe('payloads()', () => {
       ch.close()
     })()
 
-    const recv = payloads(3, ch.receiver())
+    const recv = payloads(2, ch.receiver())
 
     const rec: string[] = []
     for await (let [value, abort] of recv) {
-      if (value === 'c') {
+      if (value === 'b') {
         abort()
       } else {
         rec.push(value)
@@ -641,8 +674,8 @@ describe('payloads()', () => {
     timerUpdate = false
 
     expect(abort).toBeTruthy()
-    expect(rec).toEqual(['a', 'd', 'b'])
-    expect(r.record()).toEqual(3)
+    expect(rec).toEqual(['a', 'c', 'd'])
+    expect(r.record()).toEqual(2)
   })
 
   it('should exit loop by response(keep order)', async () => {
@@ -673,7 +706,7 @@ describe('payloads()', () => {
 
     const rec: string[] = []
     for await (let [value, abort] of recv) {
-      if (value === 'c') {
+      if (value === 'b') {
         abort()
       } else {
         rec.push(value)
@@ -682,7 +715,7 @@ describe('payloads()', () => {
     timerUpdate = false
 
     expect(abort).toBeTruthy()
-    expect(rec).toEqual(['a', 'b', 'd', 'e'])
+    expect(rec).toEqual(['a', 'c', 'd', 'e'])
     expect(r.record()).toEqual(3)
   })
 })
