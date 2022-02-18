@@ -3,8 +3,24 @@ import EventEmitter from 'events'
 import {
   abortPromise,
   cancelPromise,
+  mixPromise,
   timeoutPromise
 } from '../../src/lib/cancel.js'
+
+class DummySignal extends EventEmitter {
+  addEventListener(...args: any[]) {
+    this.addListener(args[0], args[1])
+  }
+}
+const getSignalAndAbort = (): [AbortSignal, AbortController['abort']] => {
+  const forceDummy = false
+  if (forceDummy || typeof AbortController === 'undefined') {
+    const signal = new DummySignal()
+    return [signal as any, () => signal.emit('abort')]
+  }
+  const a = new AbortController()
+  return [a.signal, () => a.abort()]
+}
 
 afterEach(() => {
   jest.useRealTimers()
@@ -30,21 +46,6 @@ describe('canccelPromise()', () => {
 })
 
 describe('abortPromise()', () => {
-  class DummySignal extends EventEmitter {
-    addEventListener(...args: any[]) {
-      this.addListener(args[0], args[1])
-    }
-  }
-  const getSignalAndAbort = (): [AbortSignal, AbortController['abort']] => {
-    const forceDummy = false
-    if (forceDummy || typeof AbortController === 'undefined') {
-      const signal = new DummySignal()
-      return [signal as any, () => signal.emit('abort')]
-    }
-    const a = new AbortController()
-    return [a.signal, () => a.abort()]
-  }
-
   it('should cancel', async () => {
     const [signal, abort] = getSignalAndAbort()
     const [c, cancel] = abortPromise(signal)
@@ -72,10 +73,9 @@ describe('abortPromise()', () => {
 
     abort() // 結果は変わらない
 
-    await Promise.resolve()
+    expect(await c).toBeUndefined()
     expect(canceled).toBeTruthy()
     expect(reason).toBeUndefined()
-    expect(await c).toBeUndefined()
   })
 
   it('should abort', async () => {
@@ -105,15 +105,14 @@ describe('abortPromise()', () => {
 
     cancel() // clean up
 
-    await Promise.resolve()
-    expect(canceled).toBeFalsy()
-    expect(reason).toEqual('Aborted')
     reason = undefined
     try {
       await c
     } catch (r) {
       reason = r
     }
+    expect(reason).toEqual('Aborted')
+    expect(canceled).toBeFalsy()
     expect(reason).toEqual('Aborted')
   })
 })
@@ -145,9 +144,10 @@ describe('timeoutPromise()', () => {
     expect(reason).toBeUndefined()
 
     jest.advanceTimersByTime(1000)
+
+    expect(await c).toBeUndefined()
     expect(canceled).toBeTruthy()
     expect(reason).toBeUndefined()
-    expect(await c).toBeUndefined()
   })
 
   it('should abort', async () => {
@@ -177,15 +177,130 @@ describe('timeoutPromise()', () => {
 
     cancel() // clean up
 
-    expect(canceled).toBeFalsy()
-    expect(reason).toEqual('Timeout')
     reason = undefined
     try {
       await c
     } catch (r) {
       reason = r
     }
+    expect(reason).toEqual('Timeout')
+    expect(canceled).toBeFalsy()
+    expect(reason).toEqual('Timeout')
+  })
+})
+
+describe('mixPromise()', () => {
+  it('should cancel', async () => {
+    jest.useFakeTimers()
+    const [signal, abort] = getSignalAndAbort()
+    const [c, cancel] = mixPromise([timeoutPromise(1000), abortPromise(signal)])
+    let canceled = false
+    let reason: any = undefined
+    c.then(
+      () => {
+        canceled = true
+      },
+      (r) => {
+        reason = r
+        return
+      }
+    )
+
+    const step = async () => {
+      // race の then が実行されるまで数ステップ必要.
+      await Promise.resolve()
+      await Promise.resolve()
+      await Promise.resolve()
+      await Promise.resolve()
+      await Promise.resolve()
+      await Promise.resolve()
+      await Promise.resolve()
+      await Promise.resolve()
+    }
+
+    await step()
+    expect(canceled).toBeFalsy()
+    expect(reason).toBeUndefined()
+
+    cancel()
+
+    await c.catch(() => {})
+    await step()
+    expect(canceled).toBeTruthy()
+    expect(reason).toBeUndefined()
+
+    jest.advanceTimersByTime(1000)
+
+    expect(await c).toBeUndefined()
+    expect(canceled).toBeTruthy()
+    expect(reason).toBeUndefined()
+
+    abort()
+    expect(await c).toBeUndefined()
+    expect(canceled).toBeTruthy()
+    expect(reason).toBeUndefined()
+  })
+
+  it('should abort', async () => {
+    jest.useFakeTimers()
+    const [signal, abort] = getSignalAndAbort()
+    const [c, cancel] = mixPromise([timeoutPromise(1000), abortPromise(signal)])
+    let canceled = false
+    let reason: any = undefined
+    c.then(
+      () => {
+        canceled = true
+      },
+      (r) => {
+        reason = r
+        return
+      }
+    )
+
+    const step = async () => {
+      // race の then が実行されるまで数ステップ必要.
+      await Promise.resolve()
+      await Promise.resolve()
+      await Promise.resolve()
+      await Promise.resolve()
+      await Promise.resolve()
+      await Promise.resolve()
+      await Promise.resolve()
+      await Promise.resolve()
+    }
+
+    await step()
+    expect(canceled).toBeFalsy()
+    expect(reason).toBeUndefined()
+
+    jest.advanceTimersByTime(1000)
+
     await Promise.resolve()
+    await c.catch(() => {})
+    expect(canceled).toBeFalsy()
+    expect(reason).toEqual('Timeout')
+
+    cancel() // clean up
+
+    reason = undefined
+    try {
+      await c
+    } catch (r) {
+      reason = r
+    }
+    expect(reason).toEqual('Timeout')
+    expect(canceled).toBeFalsy()
+    expect(reason).toEqual('Timeout')
+
+    abort() // 結果は変わらない
+    reason = undefined
+    try {
+      await c
+    } catch (r) {
+      reason = r
+    }
+    expect(reason).toEqual('Timeout')
+    expect(canceled).toBeFalsy()
     expect(reason).toEqual('Timeout')
   })
 })

@@ -6,5 +6,10 @@ export {
   fromReadableStreamGenerator
 } from './lib/generators.js'
 export { workers, payloads } from './lib/workers.js'
-export { cancelPromise, abortPromise, timeoutPromise } from './lib/cancel.js'
+export {
+  cancelPromise,
+  abortPromise,
+  timeoutPromise,
+  mixPromise
+} from './lib/cancel.js'
 export { WaitCnt } from './lib/wait.js'

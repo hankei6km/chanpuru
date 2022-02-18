@@ -45,3 +45,18 @@ export function timeoutPromise(timeout: number): [Promise<void>, () => void] {
   })
   return [p, cancel]
 }
+
+export function mixPromise(
+  c: [Promise<void>, () => void][]
+): [Promise<void>, () => void] {
+  const race = Promise.race(c.map(([p]) => p))
+    .then(() => cancelAll())
+    .catch((r) => {
+      cancelAll()
+      return Promise.reject(r)
+    })
+  const cancelAll = () => {
+    c.forEach(([_c, cancel]) => cancel())
+  }
+  return [race, cancelAll]
+}
