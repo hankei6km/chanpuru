@@ -16,12 +16,25 @@ export function abortPromise(signal: AbortSignal): [Promise<void>, () => void] {
     pickResolve()
   }
 
+  let pickReject: (r: any) => void
+  const handleAbort = () => {
+    pickReject('Aborted')
+  }
+
   const p = new Promise<void>((resolve, reject) => {
     pickResolve = resolve
-    signal.addEventListener('abort', () => {
-      reject('Aborted')
-    })
-  })
+    pickReject = reject
+    signal.addEventListener('abort', handleAbort)
+  }).then(
+    () => {
+      signal.removeEventListener('abort', handleAbort)
+      return
+    },
+    (r) => {
+      signal.removeEventListener('abort', handleAbort)
+      return Promise.reject(r)
+    }
+  )
   return [p, cancel]
 }
 
