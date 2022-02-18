@@ -11,6 +11,9 @@ class DummySignal extends EventEmitter {
   addEventListener(...args: any[]) {
     this.addListener(args[0], args[1])
   }
+  removeEventListener(...args: any[]) {
+    this.removeListener(args[0], args[1])
+  }
 }
 const getSignalAndAbort = (): [AbortSignal, AbortController['abort']] => {
   const forceDummy = false
@@ -48,6 +51,8 @@ describe('emptyPromise()', () => {
 describe('abortPromise()', () => {
   it('should cancel', async () => {
     const [signal, abort] = getSignalAndAbort()
+    const mockAddEventListener = jest.spyOn(signal, 'addEventListener')
+    const mockRemoveEventListener = jest.spyOn(signal, 'removeEventListener')
     const [c, cancel] = abortPromise(signal)
     let canceled = false
     let reason: any = undefined
@@ -64,22 +69,33 @@ describe('abortPromise()', () => {
     await Promise.resolve()
     expect(canceled).toBeFalsy()
     expect(reason).toBeUndefined()
+    expect(mockAddEventListener).toBeCalledTimes(1)
+    expect(mockRemoveEventListener).toBeCalledTimes(0)
 
     cancel()
 
-    await Promise.resolve()
+    await c.catch(() => {})
     expect(canceled).toBeTruthy()
     expect(reason).toBeUndefined()
+    expect(mockAddEventListener).toBeCalledTimes(1)
+    expect(mockRemoveEventListener).toBeCalledTimes(1)
+    expect(mockRemoveEventListener.mock.calls[0]).toEqual(
+      mockAddEventListener.mock.calls[0]
+    )
 
     abort() // 結果は変わらない
 
     expect(await c).toBeUndefined()
+    expect(mockAddEventListener).toBeCalledTimes(1)
+    expect(mockRemoveEventListener).toBeCalledTimes(1)
     expect(canceled).toBeTruthy()
     expect(reason).toBeUndefined()
   })
 
   it('should abort', async () => {
     const [signal, abort] = getSignalAndAbort()
+    const mockAddEventListener = jest.spyOn(signal, 'addEventListener')
+    const mockRemoveEventListener = jest.spyOn(signal, 'removeEventListener')
     const [c, cancel] = abortPromise(signal as any)
     let canceled = false
     let reason: any = undefined
@@ -96,12 +112,19 @@ describe('abortPromise()', () => {
     await Promise.resolve()
     expect(canceled).toBeFalsy()
     expect(reason).toBeUndefined()
+    expect(mockAddEventListener).toBeCalledTimes(1)
+    expect(mockRemoveEventListener).toBeCalledTimes(0)
 
     abort()
 
-    await Promise.resolve()
+    await c.catch(() => {})
     expect(canceled).toBeFalsy()
     expect(reason).toEqual('Aborted')
+    expect(mockAddEventListener).toBeCalledTimes(1)
+    expect(mockRemoveEventListener).toBeCalledTimes(1)
+    expect(mockRemoveEventListener.mock.calls[0]).toEqual(
+      mockAddEventListener.mock.calls[0]
+    )
 
     cancel() // clean up
 
@@ -114,6 +137,8 @@ describe('abortPromise()', () => {
     expect(reason).toEqual('Aborted')
     expect(canceled).toBeFalsy()
     expect(reason).toEqual('Aborted')
+    expect(mockAddEventListener).toBeCalledTimes(1)
+    expect(mockRemoveEventListener).toBeCalledTimes(1)
   })
 })
 
