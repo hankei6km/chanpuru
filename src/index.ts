@@ -7,7 +7,7 @@ export {
 } from './lib/generators.js'
 export { workers, payloads } from './lib/workers.js'
 export {
-  cancelPromise,
+  emptyPromise,
   abortPromise,
   timeoutPromise,
   mixPromise

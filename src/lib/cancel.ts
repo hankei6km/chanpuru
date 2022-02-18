@@ -1,4 +1,4 @@
-export function cancelPromise(): [Promise<void>, () => void] {
+export function emptyPromise(): [Promise<void>, () => void] {
   let pickResolve: () => void
   const cancel: () => void = () => {
     pickResolve()
