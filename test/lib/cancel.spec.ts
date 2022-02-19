@@ -339,7 +339,7 @@ describe('chainSignal()', () => {
     const [cancelPromise, cancel] = abortPromise(signal)
     const [chainedProimse, chainedSignal] = chainSignal(cancelPromise)
     let aborted = false
-    signal.addEventListener('abort', () => {
+    chainedSignal.addEventListener('abort', () => {
       aborted = true
     })
     expect(aborted).toBeFalsy()
