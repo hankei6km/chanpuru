@@ -86,7 +86,7 @@ export function chainSignal(c: Promise<void>): [Promise<void>, AbortSignal] {
       ac.abort()
     })
     .catch((r) => {
-      ac.abort
+      ac.abort()
       return Promise.reject(r)
     })
   return [p, ac.signal]
