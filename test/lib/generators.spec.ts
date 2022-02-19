@@ -16,8 +16,8 @@ import {
 //
 // AbortController を import  し globalThis に設定することで cancel.js で動的 import を実行させない.
 const { AbortController } = await import('abort-controller')
+const saveAbortController = globalThis.AbortController
 globalThis.AbortController = globalThis.AbortController || AbortController
-globalThis.AbortController = AbortController
 const { abortPromise, emptyPromise, timeoutPromise } = await import(
   '../../src/lib/cancel.js'
 )
@@ -31,6 +31,9 @@ afterEach(() => {
   jest.useRealTimers()
   global.setTimeout = saveSetTimeout
   global.clearTimeout = saveClearTimeout
+})
+afterAll(() => {
+  globalThis.AbortController = saveAbortController
 })
 
 describe('beatsGenerator()', () => {
