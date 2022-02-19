@@ -8,12 +8,16 @@ import { getSignalAndAbort } from '../util.js'
 //
 // AbortController を import  し globalThis に設定することで cancel.js で動的 import を実行させない.
 const { AbortController } = await import('abort-controller')
+const saveAbortController = globalThis.AbortController
 globalThis.AbortController = globalThis.AbortController || AbortController
 const { abortPromise, chainSignal, emptyPromise, mixPromise, timeoutPromise } =
   await import('../../src/lib/cancel.js')
 
 afterEach(() => {
   jest.useRealTimers()
+})
+afterAll(() => {
+  globalThis.AbortController = saveAbortController
 })
 
 describe('emptyPromise()', () => {
