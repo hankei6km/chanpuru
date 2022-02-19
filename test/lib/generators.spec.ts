@@ -9,10 +9,15 @@ import {
   rotateGenerator
 } from '../../src/lib/generators.js'
 
-// 以下のエラー対応で動的 import にしている.
-// 詳しい原因は不明.
+// 以下のエラー対応、詳しい原因は不明.
+// cancel.js を import する *.spec.ts が複数あるとエラーになる(と思う).
 // ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From test /lib/cancel.spec.ts.
 // Error [ERR_VM_MODULE_NOT_MODULE]: Provided module is not an instance of Module
+//
+// AbortController を import  し globalThis に設定することで cancel.js で動的 import を実行させない.
+const { AbortController } = await import('abort-controller')
+globalThis.AbortController = globalThis.AbortController || AbortController
+globalThis.AbortController = AbortController
 const { abortPromise, emptyPromise, timeoutPromise } = await import(
   '../../src/lib/cancel.js'
 )
