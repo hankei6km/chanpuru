@@ -394,6 +394,25 @@ describe('breakGenerator()', () => {
       mockAddEventListener.mock.calls[0]
     )
   })
+  it('should pass argument via next', async () => {
+    let f = false
+    async function* gen(): AsyncGenerator<number, void, number> {
+      try {
+        const n = yield 0
+        yield 1 + n
+        yield 2
+      } finally {
+        f = true
+      }
+    }
+    const [cancelPromise, cancel] = emptyPromise()
+    const g = breakGenerator(cancelPromise, gen(), 10 as any)
+
+    expect(await g.next()).toEqual({ done: false, value: 0 })
+    expect(await g.next(5)).toEqual({ done: false, value: 6 })
+    cancel()
+    await cancelPromise
+  })
   it('should return by cancel', async () => {
     let f = false
     async function* gen() {
