@@ -150,35 +150,58 @@ export function fromReadableStreamGenerator<T>(
   return _fromNodeJsReadableStreamGenerator(s)
 }
 
+export function breakGenerator<T = unknown, TReturn = any, TNext = unknown>(
+  signal: AbortSignal,
+  srcGenerator: AsyncGenerator<T, TReturn, TNext>,
+  retrunValue?: TReturn
+): AsyncGenerator<T, TReturn, TNext>
+export function breakGenerator<T = unknown, TReturn = any, TNext = unknown>(
+  cancelPromise: Promise<void>,
+  srcGenerator: AsyncGenerator<T, TReturn, TNext>,
+  retrunValue?: TReturn
+): AsyncGenerator<T, TReturn, TNext>
 export async function* breakGenerator<
   T = unknown,
   TReturn = any,
   TNext = unknown
 >(
-  cancelPromise: Promise<void>,
+  sc: AbortSignal | Promise<void>,
   srcGenerator: AsyncGenerator<T, TReturn, TNext>,
   retrunValue?: TReturn
 ): AsyncGenerator<T, TReturn, TNext> {
   let breaked = false
-  cancelPromise
-    .then(() => {
-      breaked = true
-    })
-    .catch((r) => {
+  const handleCancel = () => {
+    breaked = true
+  }
+  const cleanup = () => {
+    if (!(sc instanceof Promise)) {
+      sc.removeEventListener('abort', handleCancel)
+    }
+  }
+  try {
+    if (!(sc instanceof Promise)) {
+      sc.addEventListener('abort', handleCancel)
+    } else {
       // reject でもループを終了するだけ.
       // エラー処理はループ終了は別に行う(はず).
-      breaked = true
-    })
-  // 最初の next() 前に終了していた場合.
-  if (!breaked) {
-    let v = await srcGenerator.next()
-    while (!v.done && !breaked) {
-      const n = yield v.value
-      v = await srcGenerator.next(n)
+      sc.then(() => handleCancel()).catch((r) => handleCancel())
     }
+    // 最初の next() 前に終了していた場合.
     if (!breaked) {
-      return v.value as any
+      let v = await srcGenerator.next()
+      while (!v.done && !breaked) {
+        const n = yield v.value
+        v = await srcGenerator.next(n)
+      }
+      if (!breaked) {
+        // 外部から終了されていなかったらクリーンアップして最後の値を return する.
+        return v.value as any
+      }
     }
+  } finally {
+    // 外部から終了されていた場合の処理.
+    // 上から処理が流れてきた場合と、外部で return() が実行された場合がある.
+    cleanup()
   }
   return (await srcGenerator.return(retrunValue as any)).value as any
 }
