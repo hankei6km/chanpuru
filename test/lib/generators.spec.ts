@@ -365,6 +365,35 @@ describe('breakGenerator()', () => {
     await cancelPromise.catch(() => {})
     expect(await g.next()).toEqual({ done: true, value: undefined })
   })
+  it('should return by normal end(signal)', async () => {
+    let f = false
+    async function* gen() {
+      try {
+        yield 0
+        yield 1
+        yield 2
+      } finally {
+        f = true
+      }
+    }
+    const [signal, abort] = getSignalAndAbort()
+    const mockAddEventListener = jest.spyOn(signal, 'addEventListener')
+    const mockRemoveEventListener = jest.spyOn(signal, 'removeEventListener')
+    const g = breakGenerator(signal, gen(), 10 as any)
+
+    expect(await g.next()).toEqual({ done: false, value: 0 })
+    expect(await g.next()).toEqual({ done: false, value: 1 })
+    expect(await g.next()).toEqual({ done: false, value: 2 })
+    expect(await g.next()).toEqual({ done: true, value: undefined })
+    expect(f).toBeTruthy()
+    abort()
+    expect(await g.next()).toEqual({ done: true, value: undefined })
+    expect(mockAddEventListener).toBeCalledTimes(1)
+    expect(mockRemoveEventListener).toBeCalledTimes(1)
+    expect(mockRemoveEventListener.mock.calls[0]).toEqual(
+      mockAddEventListener.mock.calls[0]
+    )
+  })
   it('should return by cancel', async () => {
     let f = false
     async function* gen() {
@@ -430,5 +459,33 @@ describe('breakGenerator()', () => {
     expect(f).toBeTruthy()
     expect(await g.next()).toEqual({ done: true, value: undefined })
     cancel()
+  })
+  it('should return by abort(signal)', async () => {
+    let f = false
+    async function* gen() {
+      try {
+        yield 0
+        yield 1
+        yield 2
+      } finally {
+        f = true
+      }
+    }
+    const [signal, abort] = getSignalAndAbort()
+    const mockAddEventListener = jest.spyOn(signal, 'addEventListener')
+    const mockRemoveEventListener = jest.spyOn(signal, 'removeEventListener')
+    const g = breakGenerator(signal, gen(), 10 as any)
+
+    expect(await g.next()).toEqual({ done: false, value: 0 })
+    expect(await g.next()).toEqual({ done: false, value: 1 })
+    abort()
+    expect(await g.next()).toEqual({ done: true, value: 10 })
+    expect(f).toBeTruthy()
+    expect(await g.next()).toEqual({ done: true, value: undefined })
+    expect(mockAddEventListener).toBeCalledTimes(1)
+    expect(mockRemoveEventListener).toBeCalledTimes(1)
+    expect(mockRemoveEventListener.mock.calls[0]).toEqual(
+      mockAddEventListener.mock.calls[0]
+    )
   })
 })
