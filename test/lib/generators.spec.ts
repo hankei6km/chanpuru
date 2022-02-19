@@ -1,11 +1,6 @@
 import { jest } from '@jest/globals'
 import { Readable } from 'stream'
 import { getSignalAndAbort } from '../util.js'
-import {
-  abortPromise,
-  emptyPromise,
-  timeoutPromise
-} from '../../src/lib/cancel.js'
 import { Chan } from '../../src/lib/chan.js'
 import {
   beatsGenerator,
@@ -13,6 +8,14 @@ import {
   fromReadableStreamGenerator,
   rotateGenerator
 } from '../../src/lib/generators.js'
+
+// 以下のエラー対応で動的 import にしている.
+// 詳しい原因は不明.
+// ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From test /lib/cancel.spec.ts.
+// Error [ERR_VM_MODULE_NOT_MODULE]: Provided module is not an instance of Module
+const { abortPromise, emptyPromise, timeoutPromise } = await import(
+  '../../src/lib/cancel.js'
+)
 
 // jest.useFakeTimers の後の spyOn でも戻さないと
 // ReferenceError: setTimeout is not defined になる.

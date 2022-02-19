@@ -1,5 +1,7 @@
+// import { AbortController } from 'abort-controller'
 const AbortController =
-  globalThis.AbortController || (await import('abort-controller'))
+  globalThis.AbortController ||
+  (await import('abort-controller')).AbortController
 
 export function emptyPromise(): [Promise<void>, () => void] {
   let pickResolve: () => void
