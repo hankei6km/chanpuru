@@ -1,3 +1,6 @@
+const AbortController =
+  globalThis.AbortController || (await import('abort-controller'))
+
 export function emptyPromise(): [Promise<void>, () => void] {
   let pickResolve: () => void
   const cancel: () => void = () => {
@@ -72,4 +75,17 @@ export function mixPromise(
     c.forEach(([_c, cancel]) => cancel())
   }
   return [race, cancelAll]
+}
+
+export function chainSignal(c: Promise<void>): [Promise<void>, AbortSignal] {
+  const ac = new AbortController()
+  const p = c
+    .then(() => {
+      ac.abort()
+    })
+    .catch((r) => {
+      ac.abort
+      return Promise.reject(r)
+    })
+  return [p, ac.signal]
 }

@@ -11,6 +11,7 @@ export {
   emptyPromise,
   abortPromise,
   timeoutPromise,
-  mixPromise
+  mixPromise,
+  chainSignal
 } from './lib/cancel.js'
 export { WaitCnt } from './lib/wait.js'
