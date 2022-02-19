@@ -30,7 +30,9 @@
     "clean": "rimraf \"dist/*\"",
     "upgrade-interactive": "npm-check --update"
   },
-  "dependencies": {},
+  "dependencies": {
+    "abort-controller": "^3.0.0"
+  },
   "devDependencies": {
     "@types/jest": "^27.4.0",
     "@types/node": "^17.0.14",

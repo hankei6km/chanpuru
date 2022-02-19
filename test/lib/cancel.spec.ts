@@ -1,11 +1,16 @@
 import { jest } from '@jest/globals'
 import { getSignalAndAbort } from '../util.js'
-import {
-  abortPromise,
-  emptyPromise,
-  mixPromise,
-  timeoutPromise
-} from '../../src/lib/cancel.js'
+
+// 以下のエラー対応、詳しい原因は不明.
+// cancel.js を import する *.spec.ts が複数あるとエラーになる(と思う).
+// ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From test /lib/cancel.spec.ts.
+// Error [ERR_VM_MODULE_NOT_MODULE]: Provided module is not an instance of Module
+//
+// AbortController を import  し globalThis に設定することで cancel.js で動的 import を実行させない.
+const { AbortController } = await import('abort-controller')
+globalThis.AbortController = globalThis.AbortController || AbortController
+const { abortPromise, chainSignal, emptyPromise, mixPromise, timeoutPromise } =
+  await import('../../src/lib/cancel.js')
 
 afterEach(() => {
   jest.useRealTimers()
@@ -309,5 +314,41 @@ describe('mixPromise()', () => {
     expect(reason).toEqual('Timeout')
     expect(canceled).toBeFalsy()
     expect(reason).toEqual('Timeout')
+  })
+})
+
+describe('chainSignal()', () => {
+  it('should abort by resolve', async () => {
+    const [cancelPromise, cancel] = emptyPromise()
+    const [chainedProimse, chainedSignal] = chainSignal(cancelPromise)
+    let aborted = false
+    chainedSignal.addEventListener('abort', () => {
+      aborted = true
+    })
+    expect(aborted).toBeFalsy()
+    cancel()
+    await chainedProimse
+    expect(aborted).toBeTruthy()
+  })
+  it('should abort by reject', async () => {
+    const [signal, abort] = getSignalAndAbort()
+    const [cancelPromise, cancel] = abortPromise(signal)
+    const [chainedProimse, chainedSignal] = chainSignal(cancelPromise)
+    let aborted = false
+    signal.addEventListener('abort', () => {
+      aborted = true
+    })
+    expect(aborted).toBeFalsy()
+
+    let rejected: any
+    chainedProimse.catch((r) => {
+      rejected = r
+    })
+    abort()
+    try {
+      await chainedProimse
+    } catch {}
+    expect(rejected).toEqual('Aborted')
+    expect(aborted).toBeTruthy()
   })
 })
