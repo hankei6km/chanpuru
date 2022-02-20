@@ -1,7 +1,17 @@
+/**
+ * Options for Chan.
+ */
 export type ChanOpts = {
+  /**
+   * Yield reject to iterator if the value is rejected in receiver(generator).
+   */
   rejectInReceiver?: boolean
 }
 
+/**
+ * Class reperesenting a channel.
+ * @template T - Type of the value that will be send via Channel.
+ */
 export class Chan<T> {
   protected opts: ChanOpts = { rejectInReceiver: false }
   protected bufSize = 0
@@ -17,6 +27,11 @@ export class Chan<T> {
   protected generatorClosed: boolean = false
   protected closed: boolean = false
 
+  /**
+   * Make a channel.
+   * @param bufSize - size of buffer in channel.
+   * @param opts - options.
+   */
   constructor(bufSize: number = 0, opts: ChanOpts = {}) {
     if (opts.rejectInReceiver !== undefined) {
       this.opts.rejectInReceiver = opts.rejectInReceiver
@@ -64,7 +79,17 @@ export class Chan<T> {
       await this.valuePromise
     }
   }
-  readonly send = async (p: T): Promise<void> => {
+  /**
+   * Send the value to receiver via channel.
+   * This method required to call with `await`.
+   * It will be blocking durring buffer is filled.
+   * ```
+   * await ch.send(value)
+   * ```
+   * @param value - the value
+   * @returns
+   */
+  readonly send = async (value: T): Promise<void> => {
     if (this.closed) {
       throw new Error('panic: send on closed channel')
     }
@@ -72,7 +97,7 @@ export class Chan<T> {
     // rejectInReceiver が有効だとバッファーに乗っているものでもドロップするので、
     // (yeield で reject を for await...of などに渡すと finally が実行されるので)
     // ここのステータスだけわかってもあまり意味はないか.
-    return this.sendFunc(p)
+    return this.sendFunc(value)
   }
   private async gate(): Promise<{ done: boolean }> {
     // バッファーが埋まっていない場合は、send されるまで待つ.
@@ -88,6 +113,10 @@ export class Chan<T> {
     }
     return { done: true }
   }
+  /**
+   * Get async generator to receive the value was sended.
+   * @returns - Async Generator.
+   */
   async *receiver(): AsyncGenerator<Awaited<T>, void, void> {
     try {
       while (true) {
@@ -124,11 +153,20 @@ export class Chan<T> {
     this.bufRelease()
     this.valueRelease()
   }
+  /**
+   * Close channel.
+   */
   close() {
     this.closed = true
     this.clean()
   }
 }
 
+/**
+ * Type of send method Chan class.
+ */
 export type ChanSend<T> = Chan<T>['send']
+/**
+ * Type of async generator that is returned from receiver method of Chan class.
+ */
 export type ChanRecv<T> = ReturnType<Chan<T>['receiver']>

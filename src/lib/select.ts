@@ -12,6 +12,14 @@ function next<T, TReturn, TNext>(
   return { next: v.next(), key, idx, done: false }
 }
 
+/**
+ * Receive in order from the value that is settled until all generators has be done.
+ * @template T
+ * @template TReturn
+ * @template TNext
+ * @param gens The object is contained generators with key name.
+ * @returns Async generator to receive the value from generators that is settled with key name of generator.
+ */
 export async function* select<T, TReturn = void, TNext = void>(
   gens: Record<string, AsyncGenerator<T, TReturn, TNext>>
 ): AsyncGenerator<[string, IteratorResult<T, TReturn>], void, void> {
