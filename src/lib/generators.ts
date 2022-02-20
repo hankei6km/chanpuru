@@ -1,8 +1,17 @@
 import { send } from 'process'
 import { Chan } from './chan.js'
 
+/**
+ * Options for generator.
+ */
 export type GeneratorOpts = {
+  /**
+   * The value to timeout to yield next value.
+   */
   timeout: number
+  /**
+   * Maximux count to generate values.
+   */
   count?: number
 }
 
@@ -12,6 +21,14 @@ function generatorOptsDefault(): Required<GeneratorOpts> {
     count: 0
   }
 }
+
+/**
+ * Increment values at specied intervals.
+ * It also count return value.
+ * @param cancelPromise - Instance of promise to cancel generator.
+ * @param opts - options.
+ * @returns Async Generator
+ */
 export async function* beatsGenerator(
   cancelPromise: Promise<void>,
   opts: GeneratorOpts
@@ -83,31 +100,39 @@ export async function* beatsGenerator(
   return beat
 }
 
+/**
+ * Generate values from array.
+ * @template T
+ * @param cancelPromise - Instance of promise to cancel generator.
+ * @param source - Array that is contained valus.
+ * @param opts options.
+ * @returns Async Generator
+ */
 export async function* rotateGenerator<T>(
   cancelPromise: Promise<void>,
-  s: T[],
+  source: T[],
   opts: GeneratorOpts
 ): AsyncGenerator<T, void, void> {
   const _opts = { ...opts }
   const b = beatsGenerator(cancelPromise, _opts)
 
-  const len = s.length
+  const len = source.length
   let cnt = 0
   if (len > 0) {
     for await (let beat of b) {
       cnt = beat
-      yield s[cnt % len]
+      yield source[cnt % len]
     }
-    yield s[(cnt + 1) % len]
+    yield source[(cnt + 1) % len]
   }
 
   return
 }
 
 export async function* _fromReadableStreamGenerator<T>(
-  s: ReadableStream<T>
+  stream: ReadableStream<T>
 ): AsyncGenerator<T, void, void> {
-  const reader = s.getReader()
+  const reader = stream.getReader()
   let r = await reader.read()
   while (!r.done) {
     yield r.value
@@ -115,51 +140,73 @@ export async function* _fromReadableStreamGenerator<T>(
 }
 
 export async function* _fromNodeJsReadableStreamGenerator(
-  s: NodeJS.ReadableStream
+  stream: NodeJS.ReadableStream
 ): AsyncGenerator<string | Buffer, void, void> {
-  for await (let i of s) {
+  for await (let i of stream) {
     yield i
   }
 }
 
 function isReadableStream(
-  s: ReadableStream | NodeJS.ReadableStream
-): s is ReadableStream {
-  if (typeof ReadableStream !== 'undefined' && s instanceof ReadableStream) {
+  stream: ReadableStream | NodeJS.ReadableStream
+): stream is ReadableStream {
+  if (
+    typeof ReadableStream !== 'undefined' &&
+    stream instanceof ReadableStream
+  ) {
     return true
   }
   return false
 }
 
 export function fromReadableStreamGenerator<T>(
-  s: ReadableStream<T>
+  stream: ReadableStream<T>
 ): AsyncGenerator<T, void, void>
 
 export function fromReadableStreamGenerator<T>(
-  s: NodeJS.ReadableStream
+  stream: NodeJS.ReadableStream
 ): AsyncGenerator<string | Buffer, void, void>
 
+/**
+ * Generate values from readable stream.
+ * @param strean - Instance of readable steam.
+ * @returns  Async Generator.
+ */
 export function fromReadableStreamGenerator<T>(
-  s: ReadableStream<T> | NodeJS.ReadableStream
+  strean: ReadableStream<T> | NodeJS.ReadableStream
 ): AsyncGenerator<T, void, void> | AsyncGenerator<string | Buffer, void, void> {
-  if (isReadableStream(s)) {
-    return _fromReadableStreamGenerator(s)
+  if (isReadableStream(strean)) {
+    return _fromReadableStreamGenerator(strean)
   }
   // NodeJS.ReadableStream は for await...of で使えるから Generator 化は必須ではないが、
   // fetch で使うかもしれないので.
-  return _fromNodeJsReadableStreamGenerator(s)
+  return _fromNodeJsReadableStreamGenerator(strean)
 }
 
+/**
+ * @param signal - Instamce of `AbortSignal` that is used to trigger cancellation.
+ */
 export function breakGenerator<T = unknown, TReturn = any, TNext = unknown>(
   signal: AbortSignal,
   srcGenerator: AsyncGenerator<T, TReturn, TNext>,
   retrunValue?: TReturn
 ): AsyncGenerator<T, TReturn, TNext>
+/**
+ * @param cancelPromise - Intstance of `Promise` that is used to trigger cancellation.
+ */
 export function breakGenerator<T = unknown, TReturn = any, TNext = unknown>(
   cancelPromise: Promise<void>,
   srcGenerator: AsyncGenerator<T, TReturn, TNext>,
   retrunValue?: TReturn
 ): AsyncGenerator<T, TReturn, TNext>
+/**
+ * Generate values from source generator until cancled.
+ * It will not throw any value when rejected(aborted).
+ * @param sc - Trigger(`Promise` or `AbortSignal`) to cancel.
+ * @param srcGenerator - Generator used to generate values.
+ * @param retrunValue - The value to return at cancelled.
+ * @returns Async Generator.
+ */
 export async function* breakGenerator<
   T = unknown,
   TReturn = any,

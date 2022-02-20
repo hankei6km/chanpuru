@@ -3,6 +3,10 @@ const AbortController =
   globalThis.AbortController ||
   (await import('abort-controller')).AbortController
 
+/**
+ * Make empty `Promise` instance to used trigger to cancel context.
+ * @returns - Instance of `Promise` with cancel(resolve) function ot `Promise`.
+ */
 export function emptyPromise(): [Promise<void>, () => void] {
   let pickResolve: () => void
   const cancel: () => void = () => {
@@ -15,6 +19,11 @@ export function emptyPromise(): [Promise<void>, () => void] {
   return [p, cancel]
 }
 
+/**
+ * Make `Promise` instance with abort trigger to cancel context.
+ * @param signal - Instance of AbortSignal to reject `Promise`.
+ * @returns - Instance of `Promise` with cancel(resolve) function ot `Promise`.
+ */
 export function abortPromise(signal: AbortSignal): [Promise<void>, () => void] {
   let pickResolve: () => void
   const cancel: () => void = () => {
@@ -43,6 +52,12 @@ export function abortPromise(signal: AbortSignal): [Promise<void>, () => void] {
   return [p, cancel]
 }
 
+/**
+ *
+ * Make `Promise` instance with abort trigger to cancel context.
+ * @param timeout - Set value to timeout to reject `Promise`.
+ * @returns - Instance of `Promise` with cancel(resolve) function ot `Promise`.
+ */
 export function timeoutPromise(timeout: number): [Promise<void>, () => void] {
   let id: any = undefined
 
@@ -64,24 +79,36 @@ export function timeoutPromise(timeout: number): [Promise<void>, () => void] {
   return [p, cancel]
 }
 
+/**
+ * Make `Promise` instance that is settled by result from  `Promise.race`.
+ * @param cancelPromises - Array that is contained instance of `Promise` with cancellation function.
+ * @returns - Instance of `Promise` with cancel(resolve) function ot `Promise`.
+ */
 export function mixPromise(
-  c: [Promise<void>, () => void][]
+  cancelPromises: [Promise<void>, () => void][]
 ): [Promise<void>, () => void] {
-  const race = Promise.race(c.map(([p]) => p))
+  const race = Promise.race(cancelPromises.map(([p]) => p))
     .then(() => cancelAll())
     .catch((r) => {
       cancelAll()
       return Promise.reject(r)
     })
   const cancelAll = () => {
-    c.forEach(([_c, cancel]) => cancel())
+    cancelPromises.forEach(([_c, cancel]) => cancel())
   }
   return [race, cancelAll]
 }
 
-export function chainSignal(c: Promise<void>): [Promise<void>, AbortSignal] {
+/**
+ * Make `AbortSignal` instance that will be abroted at `Promise` has sttled.
+ * @param promise - Instance of `Promise` to used to abort signal.
+ * @returns - Instance of `Promise` with signal that will be aborted at `Promise` has sttled.
+ */
+export function chainSignal(
+  promise: Promise<void>
+): [Promise<void>, AbortSignal] {
   const ac = new AbortController()
-  const p = c
+  const p = promise
     .then(() => {
       ac.abort()
     })

@@ -1,6 +1,12 @@
 import { ChanRecv, Chan, ChanSend } from './chan.js'
 
+/**
+ * Options for worker / payloads
+ */
 export type WorkersOpts = {
+  /**
+   * Keep the order of values in a instance of workers(payloads).
+   */
   keepOrder?: boolean
 }
 function workersOptsDefault(): Required<WorkersOpts> {
@@ -42,6 +48,16 @@ function workerArray<TSend, TRecv>(
   return w
 }
 
+/**
+ * Run workers instance.
+ *
+ * worksers run instance of `Promise` that is return from the funtcion received from receiver.
+ * @template - Type of the value that will be return from instance of `Promise`.
+ * @param max - Maximum number of worker to run instance of `Promise`.
+ * @param recv - Receiver(Async generator) to recieve the function that is return instance of `Promise` in worker.
+ * @param opts - Options.
+ * @returns Receiver the value that is generated from insance of `Promise`.
+ */
 export function workers<T>(
   max: number,
   recv: ChanRecv<() => Promise<T>>,
@@ -124,6 +140,15 @@ export function _payloads<T, TPayload>(
   return ch.receiver()
 }
 
+/**
+ * Run payloads instance.
+ *
+ * payload is receive array that is contained function(it return instance of `Promose`) and the value(payload).
+ * @param max - Maximum number of payload to run instance of `Promise`.
+ * @param recv - Receiver(Async generator) to receive the function that is return instance of `Promise` in payload and the value.
+ * @param opts - Options.
+ * @returns Receiver the value that is generated from insance of `Promise` and the value was sended payload.
+ */
 export function payloads<T, TPayload>(
   max: number,
   recv: ChanRecv<[() => Promise<T>, TPayload]>,
