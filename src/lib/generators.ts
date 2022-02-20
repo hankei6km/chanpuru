@@ -1,6 +1,3 @@
-import { send } from 'process'
-import { Chan } from './chan.js'
-
 /**
  * Options for generator.
  */
