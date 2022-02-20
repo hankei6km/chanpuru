@@ -14,4 +14,3 @@ export {
   mixPromise,
   chainSignal
 } from './lib/cancel.js'
-export { WaitCnt } from './lib/wait.js'
