@@ -214,6 +214,108 @@ describe('select()', () => {
     expect(sendErr).toEqual('rejected')
     expect(selectErr).toEqual(undefined)
   })
+
+  it('should call return of each generators that is not done', async () => {
+    let gen1f = false
+    async function* gen1() {
+      try {
+        yield 10
+        yield 20
+        yield 30
+        yield 40
+      } finally {
+        gen1f = true
+      }
+    }
+    let gen2f = false
+    async function* gen2() {
+      try {
+        yield 100
+      } finally {
+        gen2f = true
+      }
+    }
+    let gen3f = false
+    async function* gen3() {
+      try {
+        yield 100
+        yield 200
+        yield 300
+      } finally {
+        gen3f = true
+      }
+    }
+
+    const g1 = gen1()
+    const g2 = gen2()
+    const g3 = gen3()
+    const sg = select({ g1, g2, g3 })
+
+    expect(await sg.next()).toEqual({
+      value: ['g1', { value: 10, done: false }],
+      done: false
+    })
+    expect(gen1f).toBeFalsy()
+    expect(gen2f).toBeFalsy()
+    expect(gen3f).toBeFalsy()
+
+    expect(await sg.next()).toEqual({
+      value: ['g2', { value: 100, done: false }],
+      done: false
+    })
+    expect(gen1f).toBeFalsy()
+    expect(gen2f).toBeFalsy()
+    expect(gen3f).toBeFalsy()
+
+    expect(await sg.next()).toEqual({
+      value: ['g1', { value: 20, done: false }],
+      done: false
+    })
+    expect(gen1f).toBeFalsy()
+    expect(gen2f).toBeTruthy() // この時点で gen2 内部では終了している、ただし select 側で継続.
+    expect(gen3f).toBeFalsy()
+
+    expect(await sg.next()).toEqual({
+      value: ['g2', { value: undefined, done: true }],
+      done: false
+    }) // ここでも select 側では継続(次の next() まで管理配列は更新されない).
+    expect(gen1f).toBeFalsy()
+    expect(gen2f).toBeTruthy()
+    expect(gen3f).toBeFalsy()
+
+    expect(await sg.next()).toEqual({
+      value: ['g1', { value: 30, done: false }],
+      done: false
+    }) // ここで g2 が終了したことになる.
+    expect(gen1f).toBeFalsy()
+    expect(gen2f).toBeTruthy()
+    expect(gen3f).toBeFalsy()
+
+    expect(await sg.return(Infinity as any)).toEqual({
+      value: Infinity,
+      done: true
+    })
+    expect(gen1f).toBeTruthy()
+    expect(gen2f).toBeTruthy()
+    expect(gen3f).toBeTruthy()
+
+    expect(await sg.next()).toEqual({
+      value: undefined,
+      done: true
+    })
+    expect(await g1.next()).toEqual({
+      value: undefined,
+      done: true
+    })
+    expect(await g2.next()).toEqual({
+      value: undefined,
+      done: true
+    })
+    expect(await g3.next()).toEqual({
+      value: undefined,
+      done: true
+    })
+  })
 })
 
 // fakeTimers だと beatsGenerator の setTimeout が反応しないので一旦保留.
