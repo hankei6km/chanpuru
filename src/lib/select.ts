@@ -28,45 +28,54 @@ export async function* select<T, TReturn = void, TNext = void>(
     ([k, v], i) => next<T, TReturn, TNext>(k, v, i)
   )
 
-  while (true) {
-    // done している項目を除去し、race に渡せる配列にする.
-    // resolve と reject は nexts の項目を特定できる情報を付加する.
-    const pa = nexts
-      .filter(({ done }) => !done)
-      .map(
-        ({ next, key, idx }) =>
-          new Promise<{
-            res: IteratorResult<T, TReturn>
-            key: string
-            idx: number
-          }>(async (resolve, reject) => {
-            try {
-              resolve({ res: await next, key, idx })
-            } catch (r) {
-              reject({ reason: r, key, idx })
-            }
-          })
-      )
-    // 配列が 0 なら終了.
-    if (pa.length === 0) {
-      break
-    }
-
-    try {
-      const n = await Promise.race(pa)
-      yield [n.key, n.res]
-      if (n.res.done) {
-        // done が付いていれば、対応する nexts の項目を終了させる.
-        nexts[n.idx].done = true
-      } else {
-        // 新しい next() をセットする.
-        nexts[n.idx] = next(n.key, gens[n.key], n.idx)
+  try {
+    while (true) {
+      // done している項目を除去し、race に渡せる配列にする.
+      // resolve と reject は nexts の項目を特定できる情報を付加する.
+      const pa = nexts
+        .filter(({ done }) => !done)
+        .map(
+          ({ next, key, idx }) =>
+            new Promise<{
+              res: IteratorResult<T, TReturn>
+              key: string
+              idx: number
+            }>(async (resolve, reject) => {
+              try {
+                resolve({ res: await next, key, idx })
+              } catch (r) {
+                reject({ reason: r, key, idx })
+              }
+            })
+        )
+      // 配列が 0 なら終了.
+      if (pa.length === 0) {
+        break
       }
-    } catch (r: any) {
-      // エラーの対応は iterator 側のよるので select の中では継続用の処理.
-      // 新しい next() をセットする.
-      if (!nexts[r.idx].done) {
-        nexts[r.idx] = next(r.key, gens[r.key], r.idx)
+
+      try {
+        const n = await Promise.race(pa)
+        yield [n.key, n.res]
+        if (n.res.done) {
+          // done が付いていれば、対応する nexts の項目を終了させる.
+          nexts[n.idx].done = true
+        } else {
+          // 新しい next() をセットする.
+          nexts[n.idx] = next(n.key, gens[n.key], n.idx)
+        }
+      } catch (r: any) {
+        // エラーの対応は iterator 側のよるので select の中では継続用の処理.
+        // 新しい next() をセットする.
+        if (!nexts[r.idx].done) {
+          nexts[r.idx] = next(r.key, gens[r.key], r.idx)
+        }
+      }
+    }
+  } finally {
+    for (let i of nexts) {
+      if (!i.done) {
+        await gens[i.key].return(undefined as any)
+        i.done = true
       }
     }
   }
