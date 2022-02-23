@@ -1,15 +1,18 @@
 type NextPromise<T, TReturn> = {
   next: Promise<IteratorResult<T, TReturn>>
   key: string
-  idx: number
   done: boolean
+}
+type NextInRace<T, TReturn> = {
+  res: IteratorResult<T, TReturn>
+  key: string
+  idx: number
 }
 function next<T, TReturn, TNext>(
   key: string,
-  v: AsyncGenerator<T, TReturn, TNext>,
-  idx: number
+  v: AsyncGenerator<T, TReturn, TNext>
 ): NextPromise<T, TReturn> {
-  return { next: v.next(), key, idx, done: false }
+  return { next: v.next(), key, done: false }
 }
 
 /**
@@ -24,50 +27,54 @@ export async function* select<T, TReturn = void, TNext = void>(
   gens: Record<string, AsyncGenerator<T, TReturn, TNext>>
 ): AsyncGenerator<[string, IteratorResult<T, TReturn>], void, void> {
   // .next() と generator を関連付ける配列に変換
-  const nexts: NextPromise<T, TReturn>[] = Object.entries(gens).map(
-    ([k, v], i) => next<T, TReturn, TNext>(k, v, i)
+  const nexts: NextPromise<T, TReturn>[] = Object.entries(gens).map(([k, v]) =>
+    next<T, TReturn, TNext>(k, v)
   )
+  let nextsEnd = nexts.length - 1
 
   try {
-    while (true) {
-      // done している項目を除去し、race に渡せる配列にする.
-      // resolve と reject は nexts の項目を特定できる情報を付加する.
-      const pa = nexts
-        .filter(({ done }) => !done)
-        .map(
-          ({ next, key, idx }) =>
-            new Promise<{
-              res: IteratorResult<T, TReturn>
-              key: string
-              idx: number
-            }>(async (resolve, reject) => {
-              try {
-                resolve({ res: await next, key, idx })
-              } catch (r) {
-                reject({ reason: r, key, idx })
-              }
-            })
+    while (nextsEnd >= 0) {
+      // done していない項目(配列内の nextsEnd までが該当)を race に渡せる配列にする.
+      // resolve と reject では nexts の項目を特定できる情報を付加する.
+      const arrayToRace: Promise<NextInRace<T, TReturn>>[] = new Array(
+        nextsEnd + 1
+      )
+      for (let idx = 0; idx <= nextsEnd; idx++) {
+        const { next, key } = nexts[idx]
+        arrayToRace[idx] = new Promise<NextInRace<T, TReturn>>(
+          async (resolve, reject) => {
+            try {
+              resolve({ res: await next, key, idx })
+            } catch (r) {
+              reject({ reason: r, key, idx })
+            }
+          }
         )
-      // 配列が 0 なら終了.
-      if (pa.length === 0) {
-        break
       }
 
       try {
-        const n = await Promise.race(pa)
+        const n = await Promise.race(arrayToRace)
         yield [n.key, n.res]
+        // 今回 yield された next を退避してから一旦取り除く(配列をつめる).
+        const save = nexts[n.idx]
+        for (let idx = n.idx + 1; idx <= nextsEnd; idx++) {
+          nexts[idx - 1] = nexts[idx]
+        }
         if (n.res.done) {
-          // done が付いていれば、対応する nexts の項目を終了させる.
-          nexts[n.idx].done = true
+          // done を設定し、末尾の位置をずらす.
+          save.done = true
+          nexts[nextsEnd] = save
+          nextsEnd--
         } else {
           // 新しい next() をセットする.
-          nexts[n.idx] = next(n.key, gens[n.key], n.idx)
+          nexts[nextsEnd] = next(n.key, gens[n.key])
         }
       } catch (r: any) {
-        // エラーの対応は iterator 側のよるので select の中では継続用の処理.
+        // エラーの対応は iterator 側によるので select の中では処理を継続させる
+        // 上記のような配列を組み替えることはしない(たいていは done になるはず).
         // 新しい next() をセットする.
         if (!nexts[r.idx].done) {
-          nexts[r.idx] = next(r.key, gens[r.key], r.idx)
+          nexts[r.idx] = next(r.key, gens[r.key])
         }
       }
     }
