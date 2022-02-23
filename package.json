@@ -1,15 +1,15 @@
 {
-  "name": "@hankei6km/promise-chan",
+  "name": "chanpuru",
   "version": "0.1.0",
-  "description": "Multiple promises to async generator",
+  "description": "Parallel processing by Promise + Async Generator.",
   "author": "hankei6km <hankei6km@gmail.com> (https://github.com/hankei6km)",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git://github.com/hankei6km/gas-blank-rows.git"
+    "url": "git://github.com/hankei6km/chanpuru.git"
   },
   "bugs": {
-    "url": "https://github.com/hankei6km/gas-blank-rows/issues"
+    "url": "https://github.com/hankei6km/chanpuru/issues"
   },
   "keywords": [
     "promise"
