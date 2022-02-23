@@ -27,6 +27,8 @@ export async function* select<T, TReturn = void, TNext = void>(
   const nexts: NextPromise<T, TReturn>[] = Object.entries(gens).map(
     ([k, v], i) => next<T, TReturn, TNext>(k, v, i)
   )
+  const nextsLen = nexts.length
+  const nextsBottom = nextsLen - 1
 
   try {
     while (true) {
@@ -61,7 +63,13 @@ export async function* select<T, TReturn = void, TNext = void>(
           nexts[n.idx].done = true
         } else {
           // 新しい next() をセットする.
-          nexts[n.idx] = next(n.key, gens[n.key], n.idx)
+          // nexts[n.idx] = next(n.key, gens[n.key], n.idx)
+          for (let idx = n.idx + 1; idx < nextsLen; idx++) {
+            const prev = idx - 1
+            nexts[idx].idx = prev
+            nexts[prev] = nexts[idx]
+          }
+          nexts[nextsBottom] = next(n.key, gens[n.key], nextsBottom)
         }
       } catch (r: any) {
         // エラーの対応は iterator 側のよるので select の中では継続用の処理.

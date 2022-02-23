@@ -172,8 +172,8 @@ describe('select()', () => {
     expect(res[6]).toEqual(['one', { value: '1-3', done: false }])
     expect(res[7]).toEqual(['two', { value: '2-3', done: false }])
     expect(res[8]).toEqual(['one', { value: '1-4', done: false }])
-    expect(res[9]).toEqual(['one', { value: undefined, done: true }])
-    expect(res[10]).toEqual(['two', { value: undefined, done: true }])
+    expect(res[9]).toEqual(['two', { value: undefined, done: true }])
+    expect(res[10]).toEqual(['one', { value: undefined, done: true }])
     expect(sendErr).toEqual('rejected')
     expect(selectErr).toEqual(undefined)
   })
@@ -268,11 +268,19 @@ describe('select()', () => {
     expect(gen3f).toBeFalsy()
 
     expect(await sg.next()).toEqual({
-      value: ['g1', { value: 20, done: false }],
+      value: ['g3', { value: 100, done: false }],
       done: false
     })
     expect(gen1f).toBeFalsy()
     expect(gen2f).toBeTruthy() // この時点で gen2 内部では終了している、ただし select 側で継続.
+    expect(gen3f).toBeFalsy()
+
+    expect(await sg.next()).toEqual({
+      value: ['g1', { value: 20, done: false }],
+      done: false
+    })
+    expect(gen1f).toBeFalsy()
+    expect(gen2f).toBeTruthy() // 同上
     expect(gen3f).toBeFalsy()
 
     expect(await sg.next()).toEqual({
@@ -284,7 +292,7 @@ describe('select()', () => {
     expect(gen3f).toBeFalsy()
 
     expect(await sg.next()).toEqual({
-      value: ['g1', { value: 30, done: false }],
+      value: ['g3', { value: 200, done: false }],
       done: false
     }) // ここで g2 が終了したことになる.
     expect(gen1f).toBeFalsy()
