@@ -1,13 +1,13 @@
 # chanpuru
 
-Parallel processing by Promise + Async Generator.
+Promise と Async Generator で並列的な処理を行う。
 
-- Sending and receiving values by `Promise` and Async Generator ([`Chan`])
-- Control multiple `Promise` concurrent executions by [`Chan`] \([`workers()`] / [`payloads()`])
-- Selecting and merging Async Generators with `Promise.race` ([`select()`])
-- Cancellation by `Promise` and AbortController ([`abortPromise()`] etc.)
+- `Promise` と Async Generator による値の送受信([`Chan`])
+- [`Chan`] による `Promise` の同時実行制御([`workers()`]/[`payloads()`])
+- `Promise.race` による Async Generator の選択とマージ([`select()`])
+- `Promise` と AbortController によるキャンセル処理([`abortPromise()`]など)
 
-These are influenced by [Go] Channle.
+これらは [Go] の Channle から影響を受けています。
 
 ## Installtion
 
@@ -19,20 +19,20 @@ $ npm install --save champloo
 
 ### paralle-jobs.ts
 
-Parallelize command execution by `$` of [zx] with [`Chan`].
+[`Chan`] で [zx] の `$` によるコマンド実行を並列化する。
 
-#### Send
+#### 送信
 
-1. Make a Channel with a buffer
-1. Asynchronously execute a loop that sends the `$` command to channel
-   - send `Promise` that is returned from `$`(it returns `ProcessPromise`)
-     - `$` executes commands continuously until buffer is filled
-     - Buffered items will be consumed by received
-   - Close Channel after sending all
-1. Return Receiver of Channel
+1. バッファーを確保した Channel を作成する
+1. [zx] の `$` によるコマンド実行を送信するループを非同期で実行しておく
+   - `$` は `Promise`(を拡張したオブジェクト)を返すので送信する
+     - バッファーが埋まるまで `$` は連続して実行される
+     - 受信されるとバッファーが空く
+   - すべて送信したら Channel を閉じる
+1. Chennl の Receiver を返す
 
-Note that the buffer size does not limit the number of `Promise` executions.
-Refer [pass-promise-paralle.ts](exanples/README.md) to details.
+バッファーサイズは `Promise` の実行数を制限していないので注意。
+詳細は[pass-promise-paralle.ts](exanples/README.md)を参照。
 
 ```ts
 function computeHash(
@@ -58,13 +58,13 @@ function computeHash(
 }
 ```
 
-#### Receive
+#### 受信
 
-1. Get Receiver(Async Generator)
-1. Receive results with `for await...of`
-   - Each result is awaited
-   - Buffer of Channel is not filled, `await send` will be released
-1. Exit the loop after all commands (`Promise`) received
+1. Receiver(Async Generator) を取得する
+1. `for await...of` で結果を受信する
+   - 結果は awaited になっている
+   - バッファーが空くので送信側のブロックが解除される
+1. すべてのコマンド(`Promise`)の結果を受信したらループを抜ける
 
 ```ts
 const recvResults = computeHash(recvFiles, workerNum)
@@ -75,20 +75,20 @@ for await (const f of recvResults) {
 
 ### log-multiple-sources.ts
 
-- Merge the output from `$` of [zx] with `select ()`
-- Stop all commands if any command exit with error status
-- Stop all commands even if timed out
+- [zx] の `$` からの出力を `select()` でマージする
+- いずれかのコマンドがエラーになればすべてのコマンドを停止する
+- タイムアウトでも全てのコマンドを停止する
 
-#### Send
+#### 送信
 
-1. Make a Channel to send command output
-1. Execute the command asynchronously with `$`
-   - Send output line by line to Channel
-   - kill the process when the `cancelPromise` is settled
-   - When an error occurs
-     1. Send `stderr` etc. to the error channel
-     1. Call `cancel ()` to notify other asynchronous functions via `cancelPromise`
-1. Returns Receiver of Channe;
+1. コマンド出力を送信する Channel を作成
+1. `$` でコマンドを非同期で実行しておく
+   - 出力を行単位で Channel から送信する
+   - cancel 用 `Promise`の決定されたらプロセスを kill する
+   - エラー発生時
+     1. エラー用 Channel へ `stderr` などを送信
+     1. `cancel()` を実行し他の非同期関数に通知する
+1. Chennl の Receiver を返す
 
 ```ts
 function ping(
@@ -155,14 +155,14 @@ function ping(
 }
 ```
 
-#### Receive
+#### 受信
 
-1. Execute a loop that receives an error with an asynchronous function
-   - When data is received, executed error process
-1. Create an object with key and Receriver for [`select ()`]
-1. Receive logs via [`select ()`] with `for await..of`
-   - `done` is passed from each Async Generators via [`select()`]
-   - Process by source key(`host`)
+1. 非同期関数でエラーを受信するループを実行しておく
+   - データを受信したらエラー用処理を実行
+1. [`select()`] 用にキーと Receriver を設定したオブジェクトを作成
+1. `for await..of` で [`select()`] からログを受信する
+   - [`select()`] では各 Async Generator からの `done` が渡されるので除外
+   - 送信元(`host`) 別に処理を行う(今回は `decorate()` で実施)
 
 ```ts
 // エラーを受信するループ.

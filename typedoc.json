@@ -1,0 +1,11 @@
+{
+  "out": "docs",
+  "entryPoints": ["src/index.ts"],
+  "plugin": "typedoc-plugin-markdown",
+  "theme": "markdown",
+  "excludeExternals": true,
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "hideBreadcrumbs": true,
+  "sort": "source-order"
+}
