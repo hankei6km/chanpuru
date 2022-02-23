@@ -25,9 +25,12 @@
     "count": "dist/main.js"
   },
   "scripts": {
-    "build": "npm run clean && tsc && rimraf dist/test && mv dist/src/* dist/ && rimraf dist/src",
+    "build": "npm run clean:dist && tsc && rimraf dist/test && mv dist/src/* dist/ && rimraf dist/src",
     "test": "node --experimental-vm-modules --unhandled-rejections=strict node_modules/.bin/jest",
-    "clean": "rimraf \"dist/*\"",
+    "docs": "npm run clean:docs && typedoc && rimraf docs/README.md && rimraf docs/.nojekyll",
+    "clean": "npm run clean:dist && npm run clean:docs",
+    "clean:dist": "rimraf \"dist/*\"",
+    "clean:docs": "rimraf \"docs/*\" && rimraf docs/.nojekyll",
     "upgrade-interactive": "npm-check --update"
   },
   "dependencies": {
@@ -40,6 +43,9 @@
     "rimraf": "^3.0.2",
     "ts-jest": "^27.1.3",
     "ts-node": "^10.4.0",
-    "typescript": "^4.5.5"
+    "typedoc": "^0.22.12",
+    "typedoc-plugin-markdown": "^3.11.14",
+    "typescript": "^4.5.5",
+    "zx": "^5.1.0"
   }
 }
