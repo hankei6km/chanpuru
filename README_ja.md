@@ -192,11 +192,11 @@ for await (const [host, value] of select(jobs)) {
 
 ## Examples
 
-[Further examples](examples/README.md)
+[Further examples](https://github.com/hankei6km/chanpuru/blob/main/examples/README.md)
 
 ## API
 
-[API document](docs/modules.md)
+[API document](https://github.com/hankei6km/chanpuru/blob/main/docs/modules.md)
 
 ## License
 
@@ -205,9 +205,9 @@ MIT License
 Copyright (c) 2022 hankei6km
 
 [go]: https://go.dev/
-[`chan`]: docs/classes/Chan.md
-[`workers()`]: docs/modules.md#workers
-[`payloads()`]: docs/modules.md#payloads
-[`select()`]: docs/modules.md#select
-[`abortpromise()`]: docs/modules.md#abortpromise
+[`chan`]: https://github.com/hankei6km/chanpuru/blob/main/docs/classes/Chan.md
+[`workers()`]: https://github.com/hankei6km/chanpuru/blob/main/docs/modules.md#workers
+[`payloads()`]: https://github.com/hankei6km/chanpuru/blob/main/docs/modules.md#payloads
+[`select()`]: https://github.com/hankei6km/chanpuru/blob/main/docs/modules.md#select
+[`abortpromise()`]: https://github.com/hankei6km/chanpuru/blob/main/docs/modules.md#abortpromise
 [zx]: https://github.com/google/zx

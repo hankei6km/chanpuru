@@ -12,17 +12,17 @@ $ node --loader ts-node/esm examples/xx/yy.ts
 
 `Chan` のサンプル。
 
-### pass-string.ts
+### [`pass-string.ts`](basic/pass-string.ts)
 
 文字列を送受信。
 
-### pass-promise.ts
+### [`pass-promise.ts`](basic/pass-promise.ts)
 
 Promise を送信する。
 
 受信される値は Async Generator の挙動により await 済みのものになる。
 
-### pass-promise-parallel.ts
+### [`pass-promise-parallel.ts`](basic/pass-promise-parallele.ts)
 
 上記のバッファーありバージョン。
 バッファーを増やしても送信と受信で順番は変動しないが、処理時間の長い Promise が 1 つでもあると受信がブロックされる。
@@ -42,7 +42,7 @@ while (true) {
 
 同時実行数を制御するサンプルは `pass-promise-strict-serial.ts` か `workers` で記述。
 
-### pass-promise-multiple-sender.ts
+### [`pass-promise-multiple-sender.ts`](basic/pass-promise-multiple-senders.ts)
 
 上記の送信側が複数存在するバージョン。
 
@@ -50,7 +50,7 @@ while (true) {
 
 なお、前述のように `await c.send()` の前に Promise を作成している場合は、同時実行数は増加していく。
 
-### pass-wrapped-promise.ts
+### [`pass-wrapped-promise.ts`](basic/pass-wrapped-promise.ts)
 
 関数で囲んだ Promise を送受信。
 
@@ -62,11 +62,11 @@ Async Generator 内で await にならないので 、受信側で Promise を�
 
 また、受信側でも reject を扱う必要がある。reject 対応は `handle-reject-wrapped-promise.ts` で記述。
 
-### pass-wrapped-promise.ts
+### [`pass-wrapped-promise-parallele.ts`](basic/pass-wrapped-promise-parallele.ts)
 
 上記のバッファーありバージョン。
 
-### pass-promise-strict-serial.ts
+### [`pass-promise-strict-serial.ts`](basic/pass-promise-strict-serial.ts)
 
 上記の変形で、「`send` に渡した関数が実行されてから Promise を生成」させる。
 
@@ -93,13 +93,13 @@ for await (let i of c.receiver()) {
 
 `n > 1` の場合での同時実行数については `workers` に記述。
 
-### pass-promise-strict-serial-with-args.ts
+### [`pass-promise-strict-serial-with-args.ts`](basic/pass-promise-strict-serial-with-args.ts)
 
 上記の Promise 生成関数に引数を持たせる。
 
 これにより受信側が Promise の生成に関与できる。
 
-### handle-reject.ts
+### [`handle-reject.ts`](basic/handle-reject.ts)
 
 Promise を送受信する場合の reject ハンドリング。
 
@@ -112,7 +112,7 @@ Promise を送受信する場合の reject ハンドリング。
 
 また、reject されても Channel(Async Generator) は動作しているので、Channel をクローズしても既に送信されている値は受信側に到達する。
 
-### handle-reject-with-receiver.ts
+### [`handle-reject-with-receiver.ts`](basic/handle-reject-with-receiver.ts)
 
 Channel の設定により「受信側にも reject を伝達させる」場合のハンドリング。
 
@@ -122,7 +122,7 @@ Channel の設定により「受信側にも reject を伝達させる」場合�
 
 なお、送信側ではどの値がドロップされたかを知る方法はない。
 
-### handle-reject-wrapped-promise.ts
+### [`handle-reject-wrapped-promise.ts`](basic/handle-reject-wrapped-promise.ts)
 
 関数で囲んだ Promise の場合は Async Generator の yield を素通りするので、受信側で reject を catch できる。
 
@@ -132,15 +132,15 @@ Channel の設定により「受信側にも reject を伝達させる」場合�
 
 `workers()` と `palyoads()` のサンプル。
 
-### workers-random.ts workers-keep-order.ts
+### [`workers-random.ts`](workers/workers-random.ts) [`workers-keep-order.ts`](workers/workers-keep-order.ts)
 
-コードの本体は `work.ts` に記述されている。
+コードの本体は [`work.ts`](workers/work.ts) に記述されている。
 
 - `workers-random.ts` - `workers()` を利用して同時に 3 つの Promise が実行される。生成される値の順番は変動する
 
 - `workers-keep-order.ts` - 生成される値の順番を保持しながら同時実行する。上記の場合に比べて処理時間は増加する傾向にある
 
-### payloads-send-string.ts
+### [`payloads-send-string.ts`](workers/payloads-send-string.ts)
 
 `payloads()` により送信側から受信側へ Promise とその他のデータを送信する。
 
@@ -150,13 +150,13 @@ Channel の設定により「受信側にも reject を伝達させる」場合�
 
 `select()` のサンプル。
 
-### select-multiple-senders.ts
+### [`select-multiple-senders.ts`](select/select-multiple-senders.ts)
 
 複数の Channel から送信された値を `select()` でマージする。
 
 基本的には `pass-promise-multiple-senders.ts` と同じだが、`select()` の場合は異なる Async generator から受信できる。また、送信元の判別も可能。
 
-### spinner.ts
+### [`spinner.ts`](select/spinner.ts)
 
 Channel とともに一定間隔で値を生成する Async generator を `select()` へ設定することでスピナーを実装する。
 
@@ -180,17 +180,29 @@ for await (let [s, v] of select<Awaited<string>>({
 
 キャンセル用の Promise と `AbortControler` を扱うサンプル。
 
+### [`timeout.ts`](cancel/timeout.ts)
+
+タイムアウトを設定したキャンセル用 `Promise` で送信側の処理を停止する。
+
+なお、送信済の `Promise` は停止されないので受信側へ到達する。
+
+### [`propagate_reject.ts`](cancel/propagate_reject.ts)
+
+Worker 内で発生した reject からキャンセル用の `Promise` を経由して送信側の処理を停止する。
+
+これも、送信済の `Promise` は停止されないので受信側へ到達する。
+
 ## zx
 
 zx で利用する場合のサンプル。
 
-### parallel-jobs.ts
+### [`parallel-jobs.ts`](zx/parallel-jobs.ts)
 
 外部コマンドを並列実行する。
 
 引数や結果の受け渡しは Channel で行い、同時実行数を `workers` で制御する。
 
-### log-multiple-sources.ts
+### [`log-multiple-sources.ts`](zx/log-multiple-sources.ts)
 
 複数ソースから送信されるログを表示。
 
