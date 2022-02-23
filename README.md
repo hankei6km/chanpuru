@@ -155,7 +155,7 @@ function ping(
 }
 ```
 
-#### 受信
+#### Receive
 
 1. Execute a loop that receives an error with an asynchronous function
    - When data is received, executed error process
