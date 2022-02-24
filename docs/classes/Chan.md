@@ -43,7 +43,7 @@ Make a channel.
 
 #### Defined in
 
-[lib/chan.ts:35](https://github.com/hankei6km/chanpuru/blob/4514629/src/lib/chan.ts#L35)
+[lib/chan.ts:35](https://github.com/hankei6km/chanpuru/blob/510182c/src/lib/chan.ts#L35)
 
 ## Methods
 
@@ -70,7 +70,7 @@ await ch.send(value)
 
 #### Defined in
 
-[lib/chan.ts:92](https://github.com/hankei6km/chanpuru/blob/4514629/src/lib/chan.ts#L92)
+[lib/chan.ts:92](https://github.com/hankei6km/chanpuru/blob/510182c/src/lib/chan.ts#L92)
 
 ___
 
@@ -88,7 +88,7 @@ Get async generator to receive the value was sended.
 
 #### Defined in
 
-[lib/chan.ts:120](https://github.com/hankei6km/chanpuru/blob/4514629/src/lib/chan.ts#L120)
+[lib/chan.ts:120](https://github.com/hankei6km/chanpuru/blob/510182c/src/lib/chan.ts#L120)
 
 ___
 
@@ -104,4 +104,4 @@ Close channel.
 
 #### Defined in
 
-[lib/chan.ts:159](https://github.com/hankei6km/chanpuru/blob/4514629/src/lib/chan.ts#L159)
+[lib/chan.ts:159](https://github.com/hankei6km/chanpuru/blob/510182c/src/lib/chan.ts#L159)
