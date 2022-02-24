@@ -39,7 +39,7 @@ function computeHash(
   ;(async () => {
     try {
       for await (const file of recvFiles) {
-        console.log(chalk.greenBright(`start - ${file}`))
+        console.log(chalk.greenBright(`start - sha256sum ${file}`))
         await ch.send($`sha256sum ${file}`)
       }
     } catch (err) {
@@ -61,7 +61,7 @@ console.log('start')
 const recvFiles = walk('./examples')
 const recvResults = computeHash(recvFiles, workerNum)
 for await (const f of recvResults) {
-  console.log(chalk.blueBright(f.stdout))
+  process.stdout.write(chalk.blueBright(f.stdout))
 }
 
 console.log(`elapsed time ${Date.now() - now}`)
