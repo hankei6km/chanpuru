@@ -192,6 +192,12 @@ Worker 内で発生した reject からキャンセル用の `Promise` を経由
 
 これも、送信済の `Promise` は停止されないので受信側へ到達する。
 
+### [`abort-promise`](cancel/abort-promise.ts)
+
+キャンセル用 `Promise` に `AbortSignal` を chain し、送信済の `Promise` を停止する。
+
+送信される `Promise` の数量は不定なのでハンドラーを明示的に開放できる `AbortSignal` を利用。
+
 ## zx
 
 zx で利用する場合のサンプル。
