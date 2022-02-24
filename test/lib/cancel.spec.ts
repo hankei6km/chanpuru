@@ -1,5 +1,4 @@
 import { jest } from '@jest/globals'
-import { CancelPromiseRejected } from '../../src/lib/cancel.js'
 import { getSignalAndAbort } from '../util.js'
 
 // 以下のエラー対応、詳しい原因は不明.
@@ -11,8 +10,14 @@ import { getSignalAndAbort } from '../util.js'
 const { AbortController } = await import('abort-controller')
 const saveAbortController = globalThis.AbortController
 globalThis.AbortController = globalThis.AbortController || AbortController
-const { abortPromise, chainSignal, emptyPromise, mixPromise, timeoutPromise } =
-  await import('../../src/lib/cancel.js')
+const {
+  CancelPromiseRejected,
+  abortPromise,
+  chainSignal,
+  emptyPromise,
+  mixPromise,
+  timeoutPromise
+} = await import('../../src/lib/cancel.js')
 
 afterEach(() => {
   jest.useRealTimers()
