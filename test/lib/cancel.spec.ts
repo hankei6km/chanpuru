@@ -1,4 +1,5 @@
 import { jest } from '@jest/globals'
+import { CancelPromiseRejected } from '../../src/lib/cancel.js'
 import { getSignalAndAbort } from '../util.js'
 
 // 以下のエラー対応、詳しい原因は不明.
@@ -18,6 +19,12 @@ afterEach(() => {
 })
 afterAll(() => {
   globalThis.AbortController = saveAbortController
+})
+
+describe('CancelPromiseRejected()', () => {
+  it('should return false', async () => {
+    expect(new Error('test') instanceof CancelPromiseRejected).toBeFalsy()
+  })
 })
 
 describe('emptyPromise()', () => {
@@ -110,7 +117,8 @@ describe('abortPromise()', () => {
 
     await c.catch(() => {})
     expect(canceled).toBeFalsy()
-    expect(reason).toEqual('Aborted')
+    expect(reason instanceof CancelPromiseRejected).toBeTruthy()
+    expect(reason.reason).toEqual('Aborted')
     expect(mockAddEventListener).toBeCalledTimes(1)
     expect(mockRemoveEventListener).toBeCalledTimes(1)
     expect(mockRemoveEventListener.mock.calls[0]).toEqual(
@@ -125,9 +133,10 @@ describe('abortPromise()', () => {
     } catch (r) {
       reason = r
     }
-    expect(reason).toEqual('Aborted')
+    expect(reason instanceof CancelPromiseRejected).toBeTruthy()
+    expect(reason.reason).toEqual('Aborted')
     expect(canceled).toBeFalsy()
-    expect(reason).toEqual('Aborted')
+    expect(reason.reason).toEqual('Aborted')
     expect(mockAddEventListener).toBeCalledTimes(1)
     expect(mockRemoveEventListener).toBeCalledTimes(1)
   })
@@ -189,7 +198,8 @@ describe('timeoutPromise()', () => {
 
     await Promise.resolve()
     expect(canceled).toBeFalsy()
-    expect(reason).toEqual('Timeout')
+    expect(reason instanceof CancelPromiseRejected).toBeTruthy()
+    expect(reason.reason).toEqual('Timeout')
 
     cancel() // clean up
 
@@ -199,9 +209,11 @@ describe('timeoutPromise()', () => {
     } catch (r) {
       reason = r
     }
-    expect(reason).toEqual('Timeout')
+    expect(reason instanceof CancelPromiseRejected).toBeTruthy()
+    expect(reason.reason).toEqual('Timeout')
     expect(canceled).toBeFalsy()
-    expect(reason).toEqual('Timeout')
+    expect(reason instanceof CancelPromiseRejected).toBeTruthy()
+    expect(reason.reason).toEqual('Timeout')
   })
 })
 
@@ -294,7 +306,8 @@ describe('mixPromise()', () => {
     await Promise.resolve()
     await c.catch(() => {})
     expect(canceled).toBeFalsy()
-    expect(reason).toEqual('Timeout')
+    expect(reason instanceof CancelPromiseRejected).toBeTruthy()
+    expect(reason.reason).toEqual('Timeout')
 
     cancel() // clean up
 
@@ -304,9 +317,9 @@ describe('mixPromise()', () => {
     } catch (r) {
       reason = r
     }
-    expect(reason).toEqual('Timeout')
+    expect(reason instanceof CancelPromiseRejected).toBeTruthy()
+    expect(reason.reason).toEqual('Timeout')
     expect(canceled).toBeFalsy()
-    expect(reason).toEqual('Timeout')
 
     abort() // 結果は変わらない
     reason = undefined
@@ -315,9 +328,9 @@ describe('mixPromise()', () => {
     } catch (r) {
       reason = r
     }
-    expect(reason).toEqual('Timeout')
+    expect(reason instanceof CancelPromiseRejected).toBeTruthy()
+    expect(reason.reason).toEqual('Timeout')
     expect(canceled).toBeFalsy()
-    expect(reason).toEqual('Timeout')
   })
 })
 
@@ -352,7 +365,8 @@ describe('chainSignal()', () => {
     try {
       await chainedProimse
     } catch {}
-    expect(rejected).toEqual('Aborted')
+    expect(rejected instanceof CancelPromiseRejected).toBeTruthy()
+    expect(rejected.reason).toEqual('Aborted')
     expect(aborted).toBeTruthy()
   })
 })

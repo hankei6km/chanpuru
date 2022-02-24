@@ -4,6 +4,20 @@ const AbortController =
   (await import('abort-controller')).AbortController
 
 /**
+ * Class reperesenting a error that is thrown when Cancel Promise is rejected.
+ */
+export class CancelPromiseRejected extends Error {
+  constructor(message: string) {
+    //https://stackoverflow.com/questions/41102060/typescript-extending-error-class
+    super(message)
+    Object.setPrototypeOf(this, CancelPromiseRejected.prototype)
+  }
+  get reason() {
+    return this.message
+  }
+}
+
+/**
  * Make empty `Promise` instance to used trigger to cancel context.
  * @returns - Instance of `Promise` with cancel(resolve) function ot `Promise`.
  */
@@ -32,7 +46,7 @@ export function abortPromise(signal: AbortSignal): [Promise<void>, () => void] {
 
   let pickReject: (r: any) => void
   const handleAbort = () => {
-    pickReject('Aborted')
+    pickReject(new CancelPromiseRejected('Aborted'))
   }
 
   const p = new Promise<void>((resolve, reject) => {
@@ -73,7 +87,7 @@ export function timeoutPromise(timeout: number): [Promise<void>, () => void] {
     pickResolve = resolve
     id = setTimeout(() => {
       id = undefined
-      reject('Timeout')
+      reject(new CancelPromiseRejected('Timeout'))
     }, timeout)
   })
   return [p, cancel]
