@@ -40,7 +40,7 @@ while (true) {
 }
 ```
 
-同時実行数を制御するサンプルは `pass-promise-strict-serial.ts` か `workers` で記述。
+同時実行数を制御するサンプルは [`pass-promise-strict-serial.ts`](#pass-promise-strict-serialts) と [`workers`](#workers) で記述。
 
 ### [`pass-promise-multiple-sender.ts`](basic/pass-promise-multiple-senders.ts)
 
@@ -60,7 +60,7 @@ Async Generator 内で await にならないので 、受信側で Promise を�
 
 なお、受信側で Chain を設定できるがこれは送信側には Chain されない。
 
-また、受信側でも reject を扱う必要がある。reject 対応は `handle-reject-wrapped-promise.ts` で記述。
+また、受信側でも reject を扱う必要がある。reject 対応は [`handle-reject-wrapped-promise.ts`](#handle-reject-wrapped-promisets) で記述。
 
 ### [`pass-wrapped-promise-parallele.ts`](basic/pass-wrapped-promise-parallele.ts)
 
@@ -91,7 +91,7 @@ for await (let i of c.receiver()) {
 
 また、送信側を増やしても同様に同時実行数は 1 を維持する。
 
-`n > 1` の場合での同時実行数については `workers` に記述。
+`n > 1` の場合での同時実行数については [`workers`](#workers) に記述。
 
 ### [`pass-promise-strict-serial-with-args.ts`](basic/pass-promise-strict-serial-with-args.ts)
 
@@ -126,7 +126,7 @@ Channel の設定により「受信側にも reject を伝達させる」場合�
 
 関数で囲んだ Promise の場合は Async Generator の yield を素通りするので、受信側で reject を catch できる。
 
-`handle-reject-with-receiver` と同様の挙動だが、関数から受け取った Promise で reject されるので Chain 設定の自由度は上がると思われる。
+[`handle-reject-with-receiver.ts`](#handle-reject-with-receiverts) と同様の挙動だが、関数から受け取った Promise で reject されるので Chain 設定の自由度は上がると思われる。
 
 ## workers
 
@@ -154,7 +154,7 @@ Channel の設定により「受信側にも reject を伝達させる」場合�
 
 複数の Channel から送信された値を `select()` でマージする。
 
-基本的には `pass-promise-multiple-senders.ts` と同じだが、`select()` の場合は異なる Async generator から受信できる。また、送信元の判別も可能。
+基本的には [`pass-promise-multiple-senders.ts`](#pass-promise-multiple-senderts) と同じだが、`select()` の場合は異なる Async generator から受信できる。また、送信元の判別も可能。
 
 ### [`spinner.ts`](select/spinner.ts)
 

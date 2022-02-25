@@ -13,9 +13,9 @@ $.verbose = false
 
 const timeout = 1000 * 7
 const hosts = {
-  host1: 'google.com',
-  host2: 'github.com',
-  host3: 'yahoo.com'
+  HOST1: 'google.com',
+  HOST2: 'github.com',
+  HOST3: 'yahoo.com'
 }
 
 /**
@@ -95,11 +95,11 @@ function ping(
  */
 function decorate(host: string) {
   switch (host) {
-    case 'host1':
+    case 'HOST1':
       return chalk.greenBright
-    case 'host2':
+    case 'HOST2':
       return chalk.blueBright
-    case 'host3':
+    case 'HOST3':
       return chalk.magentaBright
   }
   return chalk.gray
@@ -139,7 +139,11 @@ Object.entries(hosts).forEach(([k, v]) => {
 // ログを受信するループ.
 for await (const [host, value] of select(jobs)) {
   if (!value.done) {
-    console.log(`[${decorate(host)(host)}] ${value.value.toString('utf-8')}`)
+    console.log(
+      `[${decorate(host)(host)}] ${decorate(host)(
+        value.value.toString('utf-8')
+      )}`
+    )
   }
 }
 

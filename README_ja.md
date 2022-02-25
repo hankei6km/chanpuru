@@ -21,6 +21,8 @@ $ npm install --save champloo
 
 [`Chan`] で [zx] の `$` によるコマンド実行を並列化する。
 
+![外部コマンドが並列的に実行されている様子](docs/parallel-jobs.gif)
+
 #### 送信
 
 1. バッファーを確保した Channel を作成する
@@ -32,7 +34,7 @@ $ npm install --save champloo
 1. Chennl の Receiver を返す
 
 バッファーサイズは `Promise` の実行数を制限していないので注意。
-詳細は[pass-promise-paralle.ts](exanples/README.md)を参照。
+詳細は[pass-promise-paralle.ts](https://github.com/hankei6km/chanpuru/blob/main/examples/README.md#pass-promise-parallelts)を参照。
 
 ```ts
 function computeHash(
@@ -78,6 +80,8 @@ for await (const f of recvResults) {
 - [zx] の `$` からの出力を `select()` でマージする
 - いずれかのコマンドがエラーになればすべてのコマンドを停止する
 - タイムアウトでも全てのコマンドを停止する
+
+![複数ホストへの ping 実行状況をマージしながら表示している](docs/log-multpiple-sources.gif)
 
 #### 送信
 
