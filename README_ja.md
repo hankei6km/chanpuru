@@ -32,7 +32,7 @@ $ npm install --save champloo
 1. Chennl の Receiver を返す
 
 バッファーサイズは `Promise` の実行数を制限していないので注意。
-詳細は[pass-promise-paralle.ts](exanples/README.md)を参照。
+詳細は[pass-promise-paralle.ts](https://github.com/hankei6km/chanpuru/blob/main/examples/README.md#pass-promise-parallelts)を参照。
 
 ```ts
 function computeHash(

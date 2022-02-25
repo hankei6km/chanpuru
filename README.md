@@ -32,7 +32,7 @@ Parallelize command execution by `$` of [zx] with [`Chan`].
 1. Return Receiver of Channel
 
 Note that the buffer size does not limit the number of `Promise` executions.
-Refer [pass-promise-paralle.ts](exanples/README.md) to details.
+Refer [pass-promise-paralle.ts](https://github.com/hankei6km/chanpuru/blob/main/examples/README.md#pass-promise-parallelts) to details.
 
 ```ts
 function computeHash(
@@ -159,8 +159,8 @@ function ping(
 
 1. Execute a loop that receives an error with an asynchronous function
    - When data is received, executed error process
-1. Create an object with key and Receriver for [`select ()`]
-1. Receive logs via [`select ()`] with `for await..of`
+1. Create an object with key and Receriver for [`select()`]
+1. Receive logs via [`select()`] with `for await..of`
    - `done` is passed from each Async Generators via [`select()`]
    - Process by source key(`host`)
 
