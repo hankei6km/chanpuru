@@ -12,7 +12,7 @@ Promise と Async Generator で並列的な処理を行う。
 ## Installtion
 
 ```console
-$ npm install --save champloo
+$ npm install --save chanpuru
 ```
 
 ## Usage

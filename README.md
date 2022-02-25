@@ -12,7 +12,7 @@ These are influenced by [Go] Channle.
 ## Installtion
 
 ```console
-$ npm install --save champloo
+$ npm install --save chanpuru
 ```
 
 ## Usage
