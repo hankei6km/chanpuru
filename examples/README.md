@@ -1,6 +1,6 @@
 # exmaples
 
-`chanppuru` のサンプル。
+chanpuru のサンプル。
 
 ## 実行方法
 
