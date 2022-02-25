@@ -21,7 +21,7 @@ $ npm install --save champloo
 
 Parallelize command execution by `$` of [zx] with [`Chan`].
 
-![External commands(sha256sum) are being executed in parallel](docs/parallel-jobs.gif)
+![External commands(sha256sum) are being executed in parallel](https://raw.githubusercontent.com/hankei6km/chanpuru/main/docs/parallel-jobs.gif)
 
 #### Send
 
@@ -81,7 +81,7 @@ for await (const f of recvResults) {
 - Stop all commands if any command exit with error status
 - Stop all commands even if timed out
 
-![Displaying while merging the ping execution status to multiple hosts](docs/log-multpiple-sources.gif)
+![Displaying while merging the ping execution status to multiple hosts](https://raw.githubusercontent.com/hankei6km/chanpuru/main/docs/log-multpiple-sources.gif)
 
 #### Send
 
