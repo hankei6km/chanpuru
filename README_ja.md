@@ -105,12 +105,13 @@ function ping(
     let zxProc: ProcessPromise<ProcessOutput> | undefined = undefined
     // cancel されたときの処理.
     let abortOwn = false
+    const signalName = 'SIGTERM'
     cancelPromise
       .catch(() => {})
       .finally(() => {
         // コードが側からの kill.
         abortOwn = true
-        zxProc && zxProc.kill()
+        zxProc && zxProc.kill(signalName)
       })
     try {
       // ping 開始(await しない).
@@ -129,7 +130,7 @@ function ping(
       await zxProc
         .catch((r) => {
           if (r instanceof ProcessOutput) {
-            if (abortOwn && r.exitCode === null) {
+            if (abortOwn && r.exitCode === null && r.signal === signalName) {
               // 今回はコード側からの kill はエラーとしない.
               ch.send(`aborted`)
               return
@@ -143,7 +144,9 @@ function ping(
     } catch (err) {
       if (err instanceof ProcessOutput) {
         // プロセスの異常終了.
-        sendErr(`host: ${host}\nexitCopde: ${err.exitCode}\n${err.stderr}`)
+        sendErr(
+          `host: ${host}\nexitCopde: ${err.exitCode}\nsignal: ${err.signal}\n${err.stderr}`
+        )
       } else {
         // その他のエラー.
         sendErr(`host: ${host}, err: ${err}`)
