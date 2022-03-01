@@ -46,7 +46,7 @@ Make empty `Promise` instance to used trigger to cancel context.
 
 #### Defined in
 
-[lib/cancel.ts:24](https://github.com/hankei6km/chanpuru/blob/510182c/src/lib/cancel.ts#L24)
+[lib/cancel.ts:24](https://github.com/hankei6km/chanpuru/blob/214aeb1/src/lib/cancel.ts#L24)
 
 ___
 
@@ -70,7 +70,7 @@ Make `Promise` instance with abort trigger to cancel context.
 
 #### Defined in
 
-[lib/cancel.ts:41](https://github.com/hankei6km/chanpuru/blob/510182c/src/lib/cancel.ts#L41)
+[lib/cancel.ts:41](https://github.com/hankei6km/chanpuru/blob/214aeb1/src/lib/cancel.ts#L41)
 
 ___
 
@@ -94,7 +94,7 @@ Make `Promise` instance with abort trigger to cancel context.
 
 #### Defined in
 
-[lib/cancel.ts:75](https://github.com/hankei6km/chanpuru/blob/510182c/src/lib/cancel.ts#L75)
+[lib/cancel.ts:75](https://github.com/hankei6km/chanpuru/blob/214aeb1/src/lib/cancel.ts#L75)
 
 ___
 
@@ -118,7 +118,7 @@ Make `Promise` instance that is settled by result from  `Promise.race`.
 
 #### Defined in
 
-[lib/cancel.ts:101](https://github.com/hankei6km/chanpuru/blob/510182c/src/lib/cancel.ts#L101)
+[lib/cancel.ts:101](https://github.com/hankei6km/chanpuru/blob/214aeb1/src/lib/cancel.ts#L101)
 
 ___
 
@@ -142,7 +142,7 @@ Make `AbortSignal` instance that will be abroted at `Promise` has sttled.
 
 #### Defined in
 
-[lib/cancel.ts:121](https://github.com/hankei6km/chanpuru/blob/510182c/src/lib/cancel.ts#L121)
+[lib/cancel.ts:121](https://github.com/hankei6km/chanpuru/blob/214aeb1/src/lib/cancel.ts#L121)
 
 ___
 
@@ -168,7 +168,7 @@ Async Generator
 
 #### Defined in
 
-[lib/generators.ts:29](https://github.com/hankei6km/chanpuru/blob/510182c/src/lib/generators.ts#L29)
+[lib/generators.ts:29](https://github.com/hankei6km/chanpuru/blob/214aeb1/src/lib/generators.ts#L29)
 
 ___
 
@@ -200,7 +200,7 @@ Async Generator
 
 #### Defined in
 
-[lib/generators.ts:108](https://github.com/hankei6km/chanpuru/blob/510182c/src/lib/generators.ts#L108)
+[lib/generators.ts:108](https://github.com/hankei6km/chanpuru/blob/214aeb1/src/lib/generators.ts#L108)
 
 ___
 
@@ -230,7 +230,7 @@ Async Generator.
 
 #### Defined in
 
-[lib/generators.ts:159](https://github.com/hankei6km/chanpuru/blob/510182c/src/lib/generators.ts#L159)
+[lib/generators.ts:159](https://github.com/hankei6km/chanpuru/blob/214aeb1/src/lib/generators.ts#L159)
 
 ▸ **fromReadableStreamGenerator**<`T`\>(`stream`): `AsyncGenerator`<`string` \| `Buffer`, `void`, `void`\>
 
@@ -256,7 +256,7 @@ Async Generator.
 
 #### Defined in
 
-[lib/generators.ts:163](https://github.com/hankei6km/chanpuru/blob/510182c/src/lib/generators.ts#L163)
+[lib/generators.ts:163](https://github.com/hankei6km/chanpuru/blob/214aeb1/src/lib/generators.ts#L163)
 
 ___
 
@@ -291,7 +291,7 @@ Async Generator.
 
 #### Defined in
 
-[lib/generators.ts:186](https://github.com/hankei6km/chanpuru/blob/510182c/src/lib/generators.ts#L186)
+[lib/generators.ts:186](https://github.com/hankei6km/chanpuru/blob/214aeb1/src/lib/generators.ts#L186)
 
 ▸ **breakGenerator**<`T`, `TReturn`, `TNext`\>(`cancelPromise`, `srcGenerator`, `retrunValue?`): `AsyncGenerator`<`T`, `TReturn`, `TNext`\>
 
@@ -322,7 +322,7 @@ Async Generator.
 
 #### Defined in
 
-[lib/generators.ts:194](https://github.com/hankei6km/chanpuru/blob/510182c/src/lib/generators.ts#L194)
+[lib/generators.ts:194](https://github.com/hankei6km/chanpuru/blob/214aeb1/src/lib/generators.ts#L194)
 
 ___
 
@@ -354,7 +354,7 @@ Async generator to receive the value from generators that is settled with key na
 
 #### Defined in
 
-[lib/select.ts:26](https://github.com/hankei6km/chanpuru/blob/510182c/src/lib/select.ts#L26)
+[lib/select.ts:26](https://github.com/hankei6km/chanpuru/blob/214aeb1/src/lib/select.ts#L26)
 
 ___
 
@@ -388,7 +388,7 @@ Receiver the value that is generated from insance of `Promise`.
 
 #### Defined in
 
-[lib/workers.ts:61](https://github.com/hankei6km/chanpuru/blob/510182c/src/lib/workers.ts#L61)
+[lib/workers.ts:45](https://github.com/hankei6km/chanpuru/blob/214aeb1/src/lib/workers.ts#L45)
 
 ___
 
@@ -423,7 +423,7 @@ Receiver the value that is generated from insance of `Promise` and the value was
 
 #### Defined in
 
-[lib/workers.ts:152](https://github.com/hankei6km/chanpuru/blob/510182c/src/lib/workers.ts#L152)
+[lib/workers.ts:79](https://github.com/hankei6km/chanpuru/blob/214aeb1/src/lib/workers.ts#L79)
 
 ## Type aliases
 
@@ -441,7 +441,7 @@ Options for Chan.
 
 #### Defined in
 
-[lib/chan.ts:4](https://github.com/hankei6km/chanpuru/blob/510182c/src/lib/chan.ts#L4)
+[lib/chan.ts:4](https://github.com/hankei6km/chanpuru/blob/214aeb1/src/lib/chan.ts#L4)
 
 ___
 
@@ -459,7 +459,7 @@ Type of send method Chan class.
 
 #### Defined in
 
-[lib/chan.ts:168](https://github.com/hankei6km/chanpuru/blob/510182c/src/lib/chan.ts#L168)
+[lib/chan.ts:168](https://github.com/hankei6km/chanpuru/blob/214aeb1/src/lib/chan.ts#L168)
 
 ___
 
@@ -477,7 +477,7 @@ Type of async generator that is returned from receiver method of Chan class.
 
 #### Defined in
 
-[lib/chan.ts:172](https://github.com/hankei6km/chanpuru/blob/510182c/src/lib/chan.ts#L172)
+[lib/chan.ts:172](https://github.com/hankei6km/chanpuru/blob/214aeb1/src/lib/chan.ts#L172)
 
 ___
 
@@ -496,7 +496,7 @@ Options for generator.
 
 #### Defined in
 
-[lib/generators.ts:4](https://github.com/hankei6km/chanpuru/blob/510182c/src/lib/generators.ts#L4)
+[lib/generators.ts:4](https://github.com/hankei6km/chanpuru/blob/214aeb1/src/lib/generators.ts#L4)
 
 ___
 
@@ -506,12 +506,6 @@ ___
 
 Options for worker / payloads
 
-#### Type declaration
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `keepOrder?` | `boolean` | Keep the order of values in a instance of workers(payloads). |
-
 #### Defined in
 
-[lib/workers.ts:6](https://github.com/hankei6km/chanpuru/blob/510182c/src/lib/workers.ts#L6)
+[lib/workers.ts:6](https://github.com/hankei6km/chanpuru/blob/214aeb1/src/lib/workers.ts#L6)
