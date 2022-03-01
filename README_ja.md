@@ -21,7 +21,7 @@ $ npm install --save chanpuru
 
 [`Chan`] で [zx] の `$` によるコマンド実行を並列化する。
 
-![外部コマンドが並列的に実行されている様子](docs/parallel-jobs.gif)
+![外部コマンドが並列的に実行されている様子](https://raw.githubusercontent.com/hankei6km/chanpuru/main/images/parallel-jobs.gif)
 
 #### 送信
 
@@ -34,7 +34,7 @@ $ npm install --save chanpuru
 1. Chennl の Receiver を返す
 
 バッファーサイズは `Promise` の実行数を制限していないので注意。
-詳細は[pass-promise-paralle.ts](https://raw.githubusercontent.com/hankei6km/chanpuru/main/docs/parallel-jobs.gif)を参照。
+詳細は[pass-promise-paralle.ts](https://github.com/hankei6km/chanpuru/blob/main/examples/README.md#pass-promise-parallelts)を参照。
 
 ```ts
 function computeHash(
@@ -81,7 +81,7 @@ for await (const f of recvResults) {
 - いずれかのコマンドがエラーになればすべてのコマンドを停止する
 - タイムアウトでも全てのコマンドを停止する
 
-![複数ホストへの ping 実行状況をマージしながら表示している](https://raw.githubusercontent.com/hankei6km/chanpuru/main/docs/log-multpiple-sources.gif)
+![複数ホストへの ping 実行状況をマージしながら表示している](https://raw.githubusercontent.com/hankei6km/chanpuru/main/images/log-multpiple-sources.gif)
 
 #### 送信
 
