@@ -36,7 +36,7 @@ Error.constructor
 
 #### Defined in
 
-[lib/cancel.ts:10](https://github.com/hankei6km/chanpuru/blob/510182c/src/lib/cancel.ts#L10)
+[lib/cancel.ts:10](https://github.com/hankei6km/chanpuru/blob/214aeb1/src/lib/cancel.ts#L10)
 
 ## Accessors
 
@@ -50,4 +50,4 @@ Error.constructor
 
 #### Defined in
 
-[lib/cancel.ts:15](https://github.com/hankei6km/chanpuru/blob/510182c/src/lib/cancel.ts#L15)
+[lib/cancel.ts:15](https://github.com/hankei6km/chanpuru/blob/214aeb1/src/lib/cancel.ts#L15)

@@ -1,4 +1,4 @@
-import { Chan, payloads, workers } from '../../src/index.js'
+import { Chan, workers } from '../../src/index.js'
 import { Src, log, genPromise } from '../util.js'
 
 const { print } = log()
@@ -16,19 +16,19 @@ const s: Src[] = [
   ['j', 'f', 300]
 ]
 
-const ch = new Chan<[() => Promise<string>, string]>(0)
+const ch = new Chan<() => Promise<string>>(0)
 ;(async () => {
-  for (let idx = 0; idx < s.length; idx++) {
+  for (const i of s) {
     const p = ((t: Src) => {
       return () => genPromise(t, print)
-    })(s[idx])
-    await ch.send([p, idx % 2 ? '#' : '@'])
+    })(i)
+    await ch.send(p)
   }
   ch.close()
 })()
-const recv = payloads<string, string>(3, ch.receiver())
+const recv = workers<string>(3, ch.receiver())
 
-for await (let [value, payload] of recv) {
-  print(`recv ${value}-${payload}`)
+for await (let i of recv) {
+  print(`recv ${i}`)
 }
 print('done')

@@ -49,7 +49,7 @@ function generateValues([cancelPromise, cancel]: [Promise<void>, () => void]) {
     ch.close()
   })()
 
-  return workers<string>(3, ch.receiver(), { keepOrder: true })
+  return workers<string>(3, ch.receiver())
 }
 
 const [cancelPromise, cancel] = emptyPromise()
