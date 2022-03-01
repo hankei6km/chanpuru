@@ -37,5 +37,5 @@ export async function work(keepOrder: boolean): Promise<void> {
   print('done')
 }
 
-await work(false)
+// await work(false)
 // await work(true)
