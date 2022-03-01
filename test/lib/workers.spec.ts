@@ -98,6 +98,38 @@ describe('workers()', () => {
     expect(r.record()).toEqual(3)
   })
 
+  it('should receive all items(slow receive)', async () => {
+    jest.useFakeTimers()
+    let timerUpdate = true
+    ;(async () => {
+      while (timerUpdate) {
+        jest.advanceTimersByTime(5)
+        await new Promise<void>((resolve) => resolve())
+      }
+    })()
+    const r = new RecordMax()
+
+    const c = new Chan<() => Promise<string>>(0)
+    ;(async () => {
+      for (let s of src()) {
+        await c.send(genPromiseCB(r, s))
+      }
+      c.close()
+    })()
+
+    const recv = workers(3, c.receiver())
+
+    const rec: string[] = []
+    for await (let i of recv) {
+      rec.push(i)
+      await new Promise<void>((resolve) => setTimeout(() => resolve(), 200))
+    }
+    timerUpdate = false
+
+    expect(rec).toEqual(['a', 'c', 'd', 'b', 'f', 'e'])
+    expect(r.record()).toEqual(3)
+  })
+
   it('should receive all items(keep order)', async () => {
     jest.useFakeTimers()
     let timerUpdate = true
@@ -122,6 +154,38 @@ describe('workers()', () => {
     const rec: string[] = []
     for await (let i of recv) {
       rec.push(i)
+    }
+    timerUpdate = false
+
+    expect(rec).toEqual(['a', 'b', 'c', 'd', 'e', 'f'])
+    expect(r.record()).toEqual(3)
+  })
+
+  it('should receive all items(keep order, slow receive)', async () => {
+    jest.useFakeTimers()
+    let timerUpdate = true
+    ;(async () => {
+      while (timerUpdate) {
+        jest.advanceTimersByTime(5)
+        await new Promise<void>((resolve) => resolve())
+      }
+    })()
+    const r = new RecordMax()
+
+    const c = new Chan<() => Promise<string>>(0)
+    ;(async () => {
+      for (let s of src()) {
+        await c.send(genPromiseCB(r, s))
+      }
+      c.close()
+    })()
+
+    const recv = workers(3, c.receiver(), { keepOrder: true })
+
+    const rec: string[] = []
+    for await (let i of recv) {
+      rec.push(i)
+      await new Promise<void>((resolve) => setTimeout(() => resolve(), 200))
     }
     timerUpdate = false
 
@@ -397,6 +461,40 @@ describe('payloads()', () => {
     expect(r.record()).toEqual(3)
   })
 
+  it('should receive all items with payload(slow receive)', async () => {
+    jest.useFakeTimers()
+    let timerUpdate = true
+    ;(async () => {
+      while (timerUpdate) {
+        jest.advanceTimersByTime(5)
+        await new Promise<void>((resolve) => resolve())
+      }
+    })()
+    const r = new RecordMax()
+
+    const ch = new Chan<[() => Promise<string>, string]>(0)
+
+    const recResp: string[] = []
+    ;(async () => {
+      for (let s of src()) {
+        await ch.send([genPromiseCB(r, s), s[0].toUpperCase()])
+      }
+      ch.close()
+    })()
+
+    const recv = payloads(3, ch.receiver())
+
+    const rec: string[] = []
+    for await (let [value, payload] of recv) {
+      rec.push(`${value}${payload}`)
+      await new Promise<void>((resolve) => setTimeout(() => resolve(), 200))
+    }
+    timerUpdate = false
+
+    expect(rec).toEqual(['aA', 'cC', 'dD', 'bB', 'fF', 'eE'])
+    expect(r.record()).toEqual(3)
+  })
+
   it('should receive all items with payload(keep oredr)', async () => {
     jest.useFakeTimers()
     let timerUpdate = true
@@ -425,6 +523,40 @@ describe('payloads()', () => {
       rec.push(`${value}${payload}`)
     }
     timerUpdate = false
+
+    expect(rec).toEqual(['aA', 'bB', 'cC', 'dD', 'eE', 'fF'])
+    expect(r.record()).toEqual(3)
+  })
+
+  it('should receive all items with payload(keep oredr, slow receive)', async () => {
+    // jest.useFakeTimers()
+    // let timerUpdate = true
+    // ;(async () => {
+    //   while (timerUpdate) {
+    //     jest.advanceTimersByTime(5)
+    //     await new Promise<void>((resolve) => resolve())
+    //   }
+    // })()
+    const r = new RecordMax()
+
+    const ch = new Chan<[() => Promise<string>, string]>(0)
+
+    const recResp: string[] = []
+    ;(async () => {
+      for (let s of src()) {
+        await ch.send([genPromiseCB(r, s), s[0].toUpperCase()])
+      }
+      ch.close()
+    })()
+
+    const recv = payloads(3, ch.receiver(), { keepOrder: true })
+
+    const rec: string[] = []
+    for await (let [value, payload] of recv) {
+      rec.push(`${value}${payload}`)
+      await new Promise<void>((resolve) => setTimeout(() => resolve(), 200))
+    }
+    // timerUpdate = false
 
     expect(rec).toEqual(['aA', 'bB', 'cC', 'dD', 'eE', 'fF'])
     expect(r.record()).toEqual(3)

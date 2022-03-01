@@ -131,7 +131,7 @@ export function _payloads<T, TPayload>(
   ;(async () => {
     for await (let i of awaitCh.receiver()) {
       try {
-        ch.send([await i[0], i[1]])
+        await ch.send([await i[0], i[1]])
       } catch {}
     }
     ch.close()
