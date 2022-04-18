@@ -1,6 +1,5 @@
 import { createInterface } from 'readline'
-import 'zx/globals'
-import { ProcessOutput, ProcessPromise } from 'zx'
+import { $, chalk, ProcessOutput, ProcessPromise } from 'zx'
 import {
   Chan,
   ChanRecv,
