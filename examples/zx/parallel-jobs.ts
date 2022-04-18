@@ -1,7 +1,6 @@
 import { opendir } from 'fs/promises'
 import { join } from 'path'
-import { ProcessOutput } from 'zx'
-import 'zx/globals'
+import { $ , chalk, ProcessOutput } from 'zx'
 import { Chan, ChanRecv } from '../../src/index.js'
 
 /**
