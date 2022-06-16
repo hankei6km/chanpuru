@@ -31,7 +31,7 @@ function ping(
 ) {
   const ch = new Chan<string | Buffer>()
   ;(async () => {
-    let zxProc: ProcessPromise<ProcessOutput> | undefined = undefined
+    let zxProc: ProcessPromise | undefined = undefined
     // cancel されたときの処理.
     let abortOwn = false
     const signalName = 'SIGTERM'
