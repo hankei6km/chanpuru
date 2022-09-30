@@ -21,9 +21,6 @@
   "files": [
     "dist"
   ],
-  "bin": {
-    "count": "dist/main.js"
-  },
   "scripts": {
     "build": "npm run clean:dist && tsc && rimraf dist/test && mv dist/src/* dist/ && rimraf dist/src",
     "test": "node --experimental-vm-modules --unhandled-rejections=strict node_modules/.bin/jest",
