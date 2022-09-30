@@ -4,8 +4,8 @@ chanpuru のサンプル。
 
 ## 実行方法
 
-```
-$ node --loader ts-node/esm examples/xx/yy.ts
+```sh
+node --loader ts-node/esm examples/xx/yy.ts
 ```
 
 ## basic
@@ -204,6 +204,12 @@ Worker 内で発生した reject からキャンセル用の `Promise` を経由
 ## zx
 
 zx で利用する場合のサンプル。
+
+実行には別途 zx のインストールが必要です。
+
+```sh
+npm install zx
+```
 
 ### [`parallel-jobs.ts`](zx/parallel-jobs.ts)
 
