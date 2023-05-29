@@ -1,7 +1,5 @@
-// import { AbortController } from 'abort-controller'
-const AbortController =
-  globalThis.AbortController ||
-  (await import('abort-controller')).AbortController
+import { AbortController as pAbortController } from 'abort-controller'
+const AbortController = globalThis.AbortController || pAbortController
 
 /**
  * Class reperesenting a error that is thrown when Cancel Promise is rejected.
