@@ -26,8 +26,8 @@
     "test": "node --experimental-vm-modules --unhandled-rejections=strict node_modules/.bin/jest",
     "docs": "npm run clean:docs && typedoc && rimraf docs/README.md && rimraf docs/.nojekyll",
     "clean": "npm run clean:dist && npm run clean:docs",
-    "clean:dist": "rimraf \"dist/*\"",
-    "clean:docs": "rimraf \"docs/*\" && rimraf docs/.nojekyll",
+    "clean:dist": "rimraf dist/",
+    "clean:docs": "rimraf docs/ && rimraf docs/.nojekyll",
     "upgrade-interactive": "npm-check --update"
   },
   "dependencies": {
