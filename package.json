@@ -34,7 +34,7 @@
     "abort-controller": "^3.0.0"
   },
   "devDependencies": {
-    "@types/jest": "^27.4.1",
+    "@types/jest": "^29.5.3",
     "@types/node": "^20.1.0",
     "jest": "^29.6.1",
     "rimraf": "^5.0.0",
