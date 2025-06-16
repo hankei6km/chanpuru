@@ -44,11 +44,11 @@ describe('Chan()', () => {
     const c = new Chan<string>()
     c.close()
 
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
@@ -59,11 +59,11 @@ describe('Chan()', () => {
     c.close()
     await expect(c.send('0')).rejects.toThrow('panic: send on closed channel')
 
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
@@ -82,11 +82,11 @@ describe('Chan()', () => {
     expect((await i.next()).value).toEqual('0')
     expect((await i.next()).done).toBeTruthy()
 
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
@@ -105,11 +105,11 @@ describe('Chan()', () => {
     expect((await i.next()).value).toEqual('0')
     expect((await i.next()).done).toBeTruthy()
 
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
@@ -130,11 +130,11 @@ describe('Chan()', () => {
     expect((await i.next()).value).toEqual('1')
     expect((await i.next()).done).toBeTruthy()
 
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
@@ -163,11 +163,11 @@ describe('Chan()', () => {
     expect(v[0].value).toEqual('0')
     expect(v[1].value).toEqual('1')
     expect(v[2].done).toBeTruthy()
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
@@ -181,11 +181,11 @@ describe('Chan()', () => {
     const i = c.receiver()
     expect((await i.next()).done).toBeTruthy()
 
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
@@ -206,11 +206,11 @@ describe('Chan()', () => {
     expect((await i.next()).value).toEqual('1')
     expect((await i.next()).done).toBeTruthy()
 
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
@@ -231,11 +231,11 @@ describe('Chan()', () => {
     expect((await i.next()).value).toEqual('1')
     expect((await i.next()).done).toBeTruthy()
 
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
@@ -256,11 +256,11 @@ describe('Chan()', () => {
     }
     expect(res).toEqual(s)
 
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
@@ -281,11 +281,11 @@ describe('Chan()', () => {
     }
     res.sort(sortFunc)
 
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
@@ -308,11 +308,11 @@ describe('Chan()', () => {
     }
     res.sort(sortFunc)
 
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
@@ -354,11 +354,11 @@ describe('Chan()', () => {
     expect(r2Cnt).toBeGreaterThan(0)
     expect(res).toEqual(s)
 
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
@@ -406,11 +406,11 @@ describe('Chan()', () => {
     res.sort(sortFunc)
     expect(res).toEqual(s)
 
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
@@ -442,11 +442,11 @@ describe('Chan()', () => {
 
     expect(pocket).toEqual([0, 1, 2])
 
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
@@ -478,11 +478,11 @@ describe('Chan()', () => {
 
     expect(pocket).toEqual([0, 0, 1])
 
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
@@ -522,11 +522,11 @@ describe('Chan()', () => {
     for await (let v of i) {
     }
 
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
@@ -570,11 +570,11 @@ describe('Chan()', () => {
     expect(senderError).toEqual('rejected')
     expect(receiverError).toBeUndefined()
 
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
@@ -616,11 +616,11 @@ describe('Chan()', () => {
     expect(senderError).toEqual('rejected')
     expect(receiverError).toBeUndefined()
 
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
@@ -661,11 +661,11 @@ describe('Chan()', () => {
     expect(senderError).toEqual('rejected')
     expect(receiverError).toEqual('rejected')
 
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
@@ -706,11 +706,11 @@ describe('Chan()', () => {
     expect(senderError).toEqual('rejected')
     expect(receiverError).toEqual('rejected')
 
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
@@ -739,11 +739,11 @@ describe('Chan()', () => {
     }
     expect(res).toEqual(['0', '1', '2', '4', '5', '6', '7'])
 
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
@@ -772,11 +772,11 @@ describe('Chan()', () => {
     }
     expect(res).toEqual(['0', '1', '2', '4', '5', '6', '7'])
 
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
@@ -806,11 +806,11 @@ describe('Chan()', () => {
     res.sort(sortFunc)
     expect(res).toEqual(['0', '1', '2', '4', '5', '6'])
 
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
@@ -841,11 +841,11 @@ describe('Chan()', () => {
     res.sort(sortFunc)
     expect(res).toEqual(['0', '1', '2', '4', '5', '6'])
 
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()
@@ -874,11 +874,11 @@ describe('Chan()', () => {
     jest.advanceTimersByTime(1000)
     expect(await Promise.race(v)).toEqual('0')
 
-    expect(mockBufReset).toBeCalled()
+    expect(mockBufReset).toHaveBeenCalled()
     expect(
       mockBufReset.mock.calls.length <= mockBufRelease.mock.calls.length
     ).toBeTruthy()
-    expect(mockValueReset).toBeCalled()
+    expect(mockValueReset).toHaveBeenCalled()
     expect(
       mockValueReset.mock.calls.length <= mockValueRelease.mock.calls.length
     ).toBeTruthy()

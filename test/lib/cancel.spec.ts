@@ -60,16 +60,16 @@ describe('abortPromise()', () => {
     await Promise.resolve()
     expect(canceled).toBeFalsy()
     expect(reason).toBeUndefined()
-    expect(mockAddEventListener).toBeCalledTimes(1)
-    expect(mockRemoveEventListener).toBeCalledTimes(0)
+    expect(mockAddEventListener).toHaveBeenCalledTimes(1)
+    expect(mockRemoveEventListener).toHaveBeenCalledTimes(0)
 
     cancel()
 
     await c.catch(() => {})
     expect(canceled).toBeTruthy()
     expect(reason).toBeUndefined()
-    expect(mockAddEventListener).toBeCalledTimes(1)
-    expect(mockRemoveEventListener).toBeCalledTimes(1)
+    expect(mockAddEventListener).toHaveBeenCalledTimes(1)
+    expect(mockRemoveEventListener).toHaveBeenCalledTimes(1)
     expect(mockRemoveEventListener.mock.calls[0]).toEqual(
       mockAddEventListener.mock.calls[0]
     )
@@ -77,8 +77,8 @@ describe('abortPromise()', () => {
     abort() // 結果は変わらない
 
     expect(await c).toBeUndefined()
-    expect(mockAddEventListener).toBeCalledTimes(1)
-    expect(mockRemoveEventListener).toBeCalledTimes(1)
+    expect(mockAddEventListener).toHaveBeenCalledTimes(1)
+    expect(mockRemoveEventListener).toHaveBeenCalledTimes(1)
     expect(canceled).toBeTruthy()
     expect(reason).toBeUndefined()
   })
@@ -103,8 +103,8 @@ describe('abortPromise()', () => {
     await Promise.resolve()
     expect(canceled).toBeFalsy()
     expect(reason).toBeUndefined()
-    expect(mockAddEventListener).toBeCalledTimes(1)
-    expect(mockRemoveEventListener).toBeCalledTimes(0)
+    expect(mockAddEventListener).toHaveBeenCalledTimes(1)
+    expect(mockRemoveEventListener).toHaveBeenCalledTimes(0)
 
     abort()
 
@@ -112,8 +112,8 @@ describe('abortPromise()', () => {
     expect(canceled).toBeFalsy()
     expect(reason instanceof CancelPromiseRejected).toBeTruthy()
     expect(reason.reason).toEqual('Aborted')
-    expect(mockAddEventListener).toBeCalledTimes(1)
-    expect(mockRemoveEventListener).toBeCalledTimes(1)
+    expect(mockAddEventListener).toHaveBeenCalledTimes(1)
+    expect(mockRemoveEventListener).toHaveBeenCalledTimes(1)
     expect(mockRemoveEventListener.mock.calls[0]).toEqual(
       mockAddEventListener.mock.calls[0]
     )
@@ -130,8 +130,8 @@ describe('abortPromise()', () => {
     expect(reason.reason).toEqual('Aborted')
     expect(canceled).toBeFalsy()
     expect(reason.reason).toEqual('Aborted')
-    expect(mockAddEventListener).toBeCalledTimes(1)
-    expect(mockRemoveEventListener).toBeCalledTimes(1)
+    expect(mockAddEventListener).toHaveBeenCalledTimes(1)
+    expect(mockRemoveEventListener).toHaveBeenCalledTimes(1)
   })
 })
 
