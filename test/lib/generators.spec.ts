@@ -63,8 +63,8 @@ describe('beatsGenerator()', () => {
     // jest.advanceTimersByTime(1000) // cancel されたので待たない.
     expect((await i.next()).done).toBeTruthy()
 
-    expect(mockSetTimeout).toBeCalledTimes(5)
-    expect(mockClearTimeout).toBeCalledTimes(1)
+    expect(mockSetTimeout).toHaveBeenCalledTimes(5)
+    expect(mockClearTimeout).toHaveBeenCalledTimes(1)
     expect(mockSetTimeout.mock.calls[0][1]).toEqual(1000)
 
     cancel()
@@ -97,8 +97,8 @@ describe('beatsGenerator()', () => {
     jest.advanceTimersByTime(1000)
     expect((await i.next()).done).toBeTruthy()
 
-    expect(mockSetTimeout).toBeCalledTimes(3)
-    expect(mockClearTimeout).toBeCalledTimes(0)
+    expect(mockSetTimeout).toHaveBeenCalledTimes(3)
+    expect(mockClearTimeout).toHaveBeenCalledTimes(0)
     expect(mockSetTimeout.mock.calls[0][1]).toEqual(1000)
 
     cancel()
@@ -131,8 +131,8 @@ describe('beatsGenerator()', () => {
 
     expect(sended).toBeTruthy()
 
-    expect(mockSetTimeout).toBeCalledTimes(1)
-    expect(mockClearTimeout).toBeCalledTimes(0)
+    expect(mockSetTimeout).toHaveBeenCalledTimes(1)
+    expect(mockClearTimeout).toHaveBeenCalledTimes(0)
     expect(mockSetTimeout.mock.calls[0][1]).toEqual(1000)
 
     cancel()
@@ -175,8 +175,8 @@ describe('beatsGenerator()', () => {
 
     expect((await partial).done).toBeTruthy()
 
-    expect(mockSetTimeout).toBeCalledTimes(1)
-    expect(mockClearTimeout).toBeCalledTimes(1)
+    expect(mockSetTimeout).toHaveBeenCalledTimes(1)
+    expect(mockClearTimeout).toHaveBeenCalledTimes(1)
     expect(mockSetTimeout.mock.calls[0][1]).toEqual(1000)
 
     cancel()
@@ -195,8 +195,8 @@ describe('beatsGenerator()', () => {
     expect(v.value).toEqual(2) // done のときにもカウントが返ってくる.
     expect(v.done).toBeTruthy()
 
-    expect(mockSetTimeout).toBeCalledTimes(3)
-    expect(mockClearTimeout).toBeCalledTimes(0)
+    expect(mockSetTimeout).toHaveBeenCalledTimes(3)
+    expect(mockClearTimeout).toHaveBeenCalledTimes(0)
     expect(mockSetTimeout.mock.calls[0][1]).toEqual(0)
 
     cancel()
@@ -376,8 +376,8 @@ describe('breakGenerator()', () => {
     expect(f).toBeTruthy()
     abort()
     expect(await g.next()).toEqual({ done: true, value: undefined })
-    expect(mockAddEventListener).toBeCalledTimes(1)
-    expect(mockRemoveEventListener).toBeCalledTimes(1)
+    expect(mockAddEventListener).toHaveBeenCalledTimes(1)
+    expect(mockRemoveEventListener).toHaveBeenCalledTimes(1)
     expect(mockRemoveEventListener.mock.calls[0]).toEqual(
       mockAddEventListener.mock.calls[0]
     )
@@ -489,8 +489,8 @@ describe('breakGenerator()', () => {
     expect(await g.next()).toEqual({ done: true, value: 10 })
     expect(f).toBeTruthy()
     expect(await g.next()).toEqual({ done: true, value: undefined })
-    expect(mockAddEventListener).toBeCalledTimes(1)
-    expect(mockRemoveEventListener).toBeCalledTimes(1)
+    expect(mockAddEventListener).toHaveBeenCalledTimes(1)
+    expect(mockRemoveEventListener).toHaveBeenCalledTimes(1)
     expect(mockRemoveEventListener.mock.calls[0]).toEqual(
       mockAddEventListener.mock.calls[0]
     )
